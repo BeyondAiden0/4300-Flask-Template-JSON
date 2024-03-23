@@ -17,8 +17,10 @@
 
             <div class="input-box" onclick="sendFocus()">
                 <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                <input placeholder="Search for a recipe" id="filter-text-val" onkeyup="filterText()">
+                <input placeholder="Search for a recipe" id="filter-text-val" onkeyup="filterText()" autocomplete="off">
+                <div id="dropdown" class="dropdown-content"></div>
             </div>
+
         </div>
         <div id="answer-box">
 
@@ -46,27 +48,51 @@
         }
 
         function filterText() {
-            // Clear the answer box content
-            document.getElementById("answer-box").innerHTML = "";
+            let userInput = document.getElementById("filter-text-val").value;
+            // Show dropdown only if there's user input
+            if (userInput) {
+                showDropdown(userInput);
+            } else {
+                document.getElementById("dropdown").style.display = "none";
+            }
 
-            var userInput = document.getElementById("filter-text-val").value;
-
-            // Debouncing the user input storing and search query
+            // Debouncing the search query
             debounce(() => {
-                storeUserInput(userInput);
                 fetchRecipes(userInput);
             }, 500); // Adjust the delay as needed
+        }
+
+        function showDropdown(userInput) {
+            const searchOptions = ["English Muffin", "Barbeque Pork", "Sweet Carrots", "Poppy Seed Cookie", "Baked Garlic Potato Casserole", "Best Lemonade"];
+            const dropdown = document.getElementById("dropdown");
+            dropdown.innerHTML = ""; // Clear previous options
+
+            searchOptions.forEach(option => {
+                if (option.toLowerCase().includes(userInput.toLowerCase())) {
+                    const optionDiv = document.createElement("div");
+                    optionDiv.textContent = option;
+                    optionDiv.onclick = function () {
+                        document.getElementById("filter-text-val").value = option;
+                        dropdown.style.display = "none";
+                        fetchRecipes(option); // Fetch recipes for the selected option
+                    };
+                    dropdown.appendChild(optionDiv);
+                }
+            });
+
+            dropdown.style.display = dropdown.childElementCount ? "block" : "none";
         }
 
         function fetchRecipes(userInput) {
             fetch("/recipes?" + new URLSearchParams({ name: userInput }).toString())
                 .then((response) => response.json())
                 .then((data) => {
-                    document.getElementById("answer-box").innerHTML = ""; // Clear previous results
+                    const answerBox = document.getElementById("answer-box");
+                    answerBox.innerHTML = ""; // Clear previous results
                     data.forEach(row => {
-                        let tempDiv = document.createElement("div");
+                        const tempDiv = document.createElement("div");
                         tempDiv.innerHTML = answerBoxTemplate(row.Name, row.AuthorName, row.Description, row.RecipeInstructions, row.AggregatedRating);
-                        document.getElementById("answer-box").appendChild(tempDiv);
+                        answerBox.appendChild(tempDiv);
                     });
                 });
         }
@@ -86,57 +112,4 @@
         }
     </script>
 
-
-    <!-- <script>
-
-        function answerBoxTemplate(name, authorName, description, recipeInstructions, aggregatedRating) {
-            return `<div class='recipe-container'>
-                <h3 class='recipe-name'>${name}</h3>
-                <p class='recipe-author'>Author: ${authorName}</p>
-                <p class='recipe-description'>${description}</p>
-                <p class='recipe-instructions'>Instructions: ${recipeInstructions}</p>
-                <p class='recipe-rating'>Rating: ${aggregatedRating}</p>
-            </div>`
-        }
-
-        function sendFocus() {
-            document.getElementById('filter-text-val').focus()
-        }
-
-        function filterText() {
-            // Clear the answer box content
-            document.getElementById("answer-box").innerHTML = "";
-
-            // Store user input in a variable
-            var userInput = document.getElementById("filter-text-val").value;
-
-            // Store the user input in local storage
-            // localStorage.setItem('userInput', userInput);
-
-            // Send User Input to Backend server using a fetch API call
-            fetch('/store_user_input', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userInput: userInput }),
-            })
-                .then(response => response.json())
-                .then(data => console.log('Success:', data))
-                .catch((error) => console.error('Error:', error));
-
-            // Use `userInput` in the fetch request
-            fetch("/recipes?" + new URLSearchParams({ name: userInput }).toString())
-                .then((response) => response.json())
-                .then((data) => data.forEach(row => {
-                    // Create a temporary div element to hold each result
-                    let tempDiv = document.createElement("div");
-                    // Set the innerHTML of the div using the data from each row
-                    tempDiv.innerHTML = answerBoxTemplate(row.Name, row.AuthorName, row.Description, row.RecipeInstructions, row.AggregatedRating);
-                    // Append the temporary div to the "answer-box" element
-                    document.getElementById("answer-box").appendChild(tempDiv);
-                }));
-        }
-
-    </script> -->
 </body>
