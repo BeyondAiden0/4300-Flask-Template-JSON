@@ -8,6 +8,8 @@ flavormatch
 __pycache__/
 
 instance/
+testing.json
+testing.py
 
 .pytest_cache/
 .coverage
