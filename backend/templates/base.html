@@ -26,6 +26,68 @@
     </div>
 
     <script>
+        let debounceTimer;
+        function debounce(func, delay) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(func, delay);
+        }
+
+        function storeUserInput(userInput) {
+            fetch('/store_user_input', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userInput: userInput }),
+            })
+                .then(response => response.json())
+                .then(data => console.log('Success:', data))
+                .catch((error) => console.error('Error:', error));
+        }
+
+        function filterText() {
+            // Clear the answer box content
+            document.getElementById("answer-box").innerHTML = "";
+
+            var userInput = document.getElementById("filter-text-val").value;
+
+            // Debouncing the user input storing and search query
+            debounce(() => {
+                storeUserInput(userInput);
+                fetchRecipes(userInput);
+            }, 500); // Adjust the delay as needed
+        }
+
+        function fetchRecipes(userInput) {
+            fetch("/recipes?" + new URLSearchParams({ name: userInput }).toString())
+                .then((response) => response.json())
+                .then((data) => {
+                    document.getElementById("answer-box").innerHTML = ""; // Clear previous results
+                    data.forEach(row => {
+                        let tempDiv = document.createElement("div");
+                        tempDiv.innerHTML = answerBoxTemplate(row.Name, row.AuthorName, row.Description, row.RecipeInstructions, row.AggregatedRating);
+                        document.getElementById("answer-box").appendChild(tempDiv);
+                    });
+                });
+        }
+
+        function answerBoxTemplate(name, authorName, description, recipeInstructions, aggregatedRating) {
+            return `<div class='recipe-container'>
+                <h3 class='recipe-name'>${name}</h3>
+                <p class='recipe-author'>Author: ${authorName}</p>
+                <p class='recipe-description'>${description}</p>
+                <p class='recipe-instructions'>Instructions: ${recipeInstructions}</p>
+                <p class='recipe-rating'>Rating: ${aggregatedRating}</p>
+            </div>`;
+        }
+
+        function sendFocus() {
+            document.getElementById('filter-text-val').focus();
+        }
+    </script>
+
+
+    <!-- <script>
 
         function answerBoxTemplate(name, authorName, description, recipeInstructions, aggregatedRating) {
             return `<div class='recipe-container'>
@@ -76,5 +138,5 @@
                 }));
         }
 
-    </script>
+    </script> -->
 </body>
