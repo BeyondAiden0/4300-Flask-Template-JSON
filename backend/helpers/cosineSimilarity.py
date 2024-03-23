@@ -1,6 +1,8 @@
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
+
+
 def calculate_cosine_similarities(target_vector, other_vectors):
     # Concatenate target_vector (1 vector) with other_vectors (all other vectors) for simultaneous calculation
     all_vectors = np.vstack([target_vector, other_vectors])

@@ -5,7 +5,7 @@ import re
 import numpy as np
 
 dir = "backend/data/flavors"
-recipes = "backend/data/random-recipe.json"
+recipes = "backend/data/reduced-recipe.json"
 
 
 """
@@ -145,8 +145,7 @@ row = 0
 
 print(nflavors)
 print(ndishes)
-# print(json_dict.keys())
-# print("Egg" in json_dict.keys())
+
 for ingredient_list in name_ing_data[1]:
   acc = []
   for ingredient in ingredient_list:
