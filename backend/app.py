@@ -52,5 +52,24 @@ def recipes_search():
     text = request.args.get("name")  # Assume the query parameter is 'name' for recipe name
     return json_search(text)
 
+# This Flask endpoint receives the user input sent from the frontend and can process or store it
+@app.route('/store_user_input', methods=['POST'])
+def store_user_input():
+    data = request.json
+    userInput = data['userInput']
+
+    # Process userInput or store it here:
+    # 1. Save userInput to a file
+    with open('user_input.txt', 'w') as file:
+        file.write(userInput)
+    # 2. User userInput as input to method in other python script
+    # otherPythonMethod(userInput)
+    # (1) To use userInput in other python script:
+    # def process_user_input():
+    # with open('user_input.txt', 'r') as file:
+    #     userInput = file.read()
+
+    return jsonify({"status": "success", "userInput": userInput})
+
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=5000)

@@ -11,43 +11,10 @@
         <div class="top-text">
             <div>
 
-                <!-- <h1>F</h1>
-                <h1>l</h1>
-                <h1>a</h1>
-                <h1>v</h1>
-                <h1>o</h1>
-                <h1>r</h1>
-                <h1>M</h1>
-                <h1>a</h1>
-                <h1>t</h1>
-                <h1>c</h1>
-                <h1>h</h1> -->
-
-                <!-- <h1>FlavorMatch</h1> -->
-
-                <!-- <link href='https://fonts.googleapis.com/css?family=Josefin+Sans' rel='stylesheet' type='text/css'>
-                <h1> 
-                <em>F</em>
-                <em>l</em>
-                <em class="planet left">a</em>
-                <em>v</em>
-                <em>o</em>
-                <em>r</em>
-                <em>M</em>
-                <em class="planet right">a</em>
-                <em>t</em>
-                <em>c</em>
-                <em>h</em> 
-                </h1> -->
-
                 <h1><span>F</span><span>l</span><span>a</span><span>v</span><span>o</span><span></span><span>r</span><span>M</span><span>a</span><span>t</span><span></span><span>c</span><span>h</span>
                 </h1>
             </div>
-            <!-- <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br> -->
+
             <div class="input-box" onclick="sendFocus()">
                 <img src="{{ url_for('static', filename='images/mag.png') }}" />
                 <input placeholder="Search for a recipe" id="filter-text-val" onkeyup="filterText()">
@@ -59,14 +26,6 @@
     </div>
 
     <script>
-
-        // function answerBoxTemplate(title,titleDesc,rating){
-        //     return `<div class=''>
-        //         <h3 class='episode-title'>${title}</h3>
-        //         <p class='episode-desc'>${titleDesc}</p>
-        //         <p class='episode-rating'>IMDB Rating: ${rating}</p>
-        //     </div>`
-        // }
 
         function answerBoxTemplate(name, authorName, description, recipeInstructions, aggregatedRating) {
             return `<div class='recipe-container'>
@@ -82,31 +41,39 @@
             document.getElementById('filter-text-val').focus()
         }
 
-        // function filterText() {
-        //     document.getElementById("answer-box").innerHTML = ""
-        //     console.log(document.getElementById("filter-text-val").value)
-        //     fetch("/episodes?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
-        //         .then((response) => response.json())
-        //         .then((data) => data.forEach(row => {
-
-        //             let tempDiv = document.createElement("div")
-        //             tempDiv.innerHTML = answerBoxTemplate(row.title, row.descr, row.imdb_rating)
-        //             document.getElementById("answer-box").appendChild(tempDiv)
-        //         }));
-
-        // }
-
         function filterText() {
-            document.getElementById("answer-box").innerHTML = ""
-            fetch("/recipes?" + new URLSearchParams({ name: document.getElementById("filter-text-val").value }).toString())
+            // Clear the answer box content
+            document.getElementById("answer-box").innerHTML = "";
+
+            // Store user input in a variable
+            var userInput = document.getElementById("filter-text-val").value;
+
+            // Store the user input in local storage
+            // localStorage.setItem('userInput', userInput);
+
+            // Send User Input to Backend server using a fetch API call
+            fetch('/store_user_input', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userInput: userInput }),
+            })
+                .then(response => response.json())
+                .then(data => console.log('Success:', data))
+                .catch((error) => console.error('Error:', error));
+
+            // Use `userInput` in the fetch request
+            fetch("/recipes?" + new URLSearchParams({ name: userInput }).toString())
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
-
-                    let tempDiv = document.createElement("div")
-                    tempDiv.innerHTML = answerBoxTemplate(row.Name, row.AuthorName, row.Description, row.RecipeInstructions, row.AggregatedRating)
-                    document.getElementById("answer-box").appendChild(tempDiv)
+                    // Create a temporary div element to hold each result
+                    let tempDiv = document.createElement("div");
+                    // Set the innerHTML of the div using the data from each row
+                    tempDiv.innerHTML = answerBoxTemplate(row.Name, row.AuthorName, row.Description, row.RecipeInstructions, row.AggregatedRating);
+                    // Append the temporary div to the "answer-box" element
+                    document.getElementById("answer-box").appendChild(tempDiv);
                 }));
-
         }
 
     </script>
