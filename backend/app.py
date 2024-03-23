@@ -4,10 +4,11 @@ from flask import Flask, render_template, request
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
+from helpers.matrix import *
 
-# ROOT_PATH for linking with all your files. 
+# ROOT_PATH for linking with all your files.
 # Feel free to use a config.py or settings.py with a global export variable
-os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..",os.curdir))
+os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..", os.curdir))
 
 # Get the directory of the current script
 current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -25,6 +26,8 @@ app = Flask(__name__)
 CORS(app)
 
 # Sample search using json with pandas
+
+
 def json_search(query):
     # matches = []
     # merged_df = pd.merge(episodes_df, reviews_df, left_on='id', right_on='id', how='inner')
@@ -32,27 +35,35 @@ def json_search(query):
     # matches_filtered = matches[['title', 'descr', 'imdb_rating']]
     # matches_filtered_json = matches_filtered.to_json(orient='records')
     # return matches_filtered_json
-    merged_df = pd.merge(recipes_df, reviews_df, left_on='RecipeId', right_on='RecipeId', how='inner')
-    matches = merged_df[merged_df['Name'].str.lower().str.contains(query.lower())]
-    matches_filtered = matches[['Name', 'AuthorName', 'Description', 'RecipeInstructions', 'AggregatedRating']]
+    merged_df = pd.merge(recipes_df, reviews_df,
+                         left_on='RecipeId', right_on='RecipeId', how='inner')
+    matches = merged_df[merged_df['Name'].str.lower(
+    ).str.contains(query.lower())]
+    matches_filtered = matches[[
+        'Name', 'AuthorName', 'Description', 'RecipeInstructions', 'AggregatedRating']]
     matches_filtered_json = matches_filtered.to_json(orient='records')
     return matches_filtered_json
 
+
 @app.route("/")
 def home():
-    return render_template('base.html',title="sample html")
+    return render_template('base.html', title="sample html")
 
 # @app.route("/episodes")
 # def episodes_search():
 #     text = request.args.get("title")
 #     return json_search(text)
 
+
 @app.route("/recipes")
 def recipes_search():
-    text = request.args.get("name")  # Assume the query parameter is 'name' for recipe name
+    # Assume the query parameter is 'name' for recipe name
+    text = request.args.get("name")
     return json_search(text)
 
 # This Flask endpoint receives the user input sent from the frontend and can process or store it
+
+
 @app.route('/store_user_input', methods=['POST'])
 def store_user_input():
     data = request.json
@@ -60,8 +71,8 @@ def store_user_input():
 
     # Process userInput or store it here:
     # 1. Save userInput to a file
-    with open('user_input.txt', 'w') as file:
-        file.write(userInput)
+    with open('input_vector.txt', 'w') as file:
+        file.write(query_vector(userInput))
     # 2. User userInput as input to method in other python script
     # otherPythonMethod(userInput)
     # (1) To use userInput in other python script:
@@ -71,5 +82,6 @@ def store_user_input():
 
     return jsonify({"status": "success", "userInput": userInput})
 
+
 if 'DB_NAME' not in os.environ:
-    app.run(debug=True,host="0.0.0.0",port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5000)
