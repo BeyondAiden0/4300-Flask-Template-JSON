@@ -5,7 +5,7 @@ import re
 import numpy as np
 
 dir = "backend/data/flavors"
-recipes = "backend/data/rec.json"
+recipes = "backend/data/random-recipe.json"
 
 
 """
