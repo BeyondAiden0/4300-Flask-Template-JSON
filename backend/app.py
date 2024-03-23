@@ -18,7 +18,7 @@ json_file_path = os.path.join(current_directory, 'init.json')
 # Assuming your JSON data is stored in a file named 'init.json'
 with open(json_file_path, 'r') as file:
     data = json.load(file)
-    episodes_df = pd.DataFrame(data['episodes'])
+    recipes_df = pd.DataFrame(data['recipes'])
     reviews_df = pd.DataFrame(data['reviews'])
 
 app = Flask(__name__)
@@ -26,10 +26,15 @@ CORS(app)
 
 # Sample search using json with pandas
 def json_search(query):
-    matches = []
-    merged_df = pd.merge(episodes_df, reviews_df, left_on='id', right_on='id', how='inner')
-    matches = merged_df[merged_df['title'].str.lower().str.contains(query.lower())]
-    matches_filtered = matches[['title', 'descr', 'imdb_rating']]
+    # matches = []
+    # merged_df = pd.merge(episodes_df, reviews_df, left_on='id', right_on='id', how='inner')
+    # matches = merged_df[merged_df['title'].str.lower().str.contains(query.lower())]
+    # matches_filtered = matches[['title', 'descr', 'imdb_rating']]
+    # matches_filtered_json = matches_filtered.to_json(orient='records')
+    # return matches_filtered_json
+    merged_df = pd.merge(recipes_df, reviews_df, left_on='RecipeId', right_on='RecipeId', how='inner')
+    matches = merged_df[merged_df['Name'].str.lower().str.contains(query.lower())]
+    matches_filtered = matches[['Name', 'AuthorName', 'Description', 'RecipeInstructions', 'AggregatedRating']]
     matches_filtered_json = matches_filtered.to_json(orient='records')
     return matches_filtered_json
 
@@ -37,9 +42,14 @@ def json_search(query):
 def home():
     return render_template('base.html',title="sample html")
 
-@app.route("/episodes")
-def episodes_search():
-    text = request.args.get("title")
+# @app.route("/episodes")
+# def episodes_search():
+#     text = request.args.get("title")
+#     return json_search(text)
+
+@app.route("/recipes")
+def recipes_search():
+    text = request.args.get("name")  # Assume the query parameter is 'name' for recipe name
     return json_search(text)
 
 if 'DB_NAME' not in os.environ:
