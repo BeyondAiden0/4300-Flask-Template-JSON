@@ -4,8 +4,8 @@ from collections import Counter
 import re
 import numpy as np
 
-dir = "backend/data/flavors"
-recipes = "helpers/reduced-recipe.json"
+dir = "data/flavors"
+recipes = "data/reduced-recipe.json"
 
 
 """
@@ -16,7 +16,7 @@ of {"ingredient-name":"json-file-name"} ex: {"eggs":"0 eggs.json"}
 
 def create_dict_from_directory(directory):
     dict_files = {}
-    for item in dir:
+    for item in os.listdir(directory):
         if item.endswith('.json'):
             key = (item.split(' ', 1)[1].rsplit('.', 1)[0]).lower()
             dict_files[key] = item
@@ -54,7 +54,7 @@ def collect_flavor_profiles_from_directory(directory):
     # Initialize an empty set to store all unique flavor profiles
     all_flavor_profiles = set()
 
-    for item in dir:
+    for item in os.listdir(directory):
         if item.endswith('.json'):
             # Get the flavor profiles from the current JSON file
             flavor_profiles = get_flavor_profiles(
