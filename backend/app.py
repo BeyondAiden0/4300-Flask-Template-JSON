@@ -1,10 +1,10 @@
 import json
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
-from helpers.matrix import *
+from helpers.matrix import query_vector
 
 # ROOT_PATH for linking with all your files.
 # Feel free to use a config.py or settings.py with a global export variable
@@ -72,7 +72,11 @@ def store_user_input():
     # Process userInput or store it here:
     # 1. Save userInput to a file
     with open('input_vector.txt', 'w') as file:
-        file.write(query_vector(userInput))
+        # Option 1: To print the user input as vector vector (currently empty list)
+        # file.write(str(query_vector(userInput)))
+        # Option 2: To print the user input as string
+        file.write(userInput)
+
     # 2. User userInput as input to method in other python script
     # otherPythonMethod(userInput)
     # (1) To use userInput in other python script:

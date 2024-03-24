@@ -74,6 +74,7 @@
                     optionDiv.onclick = function () {
                         document.getElementById("filter-text-val").value = option;
                         dropdown.style.display = "none";
+                        storeUserInput(option); // Store the selected option
                         fetchRecipes(option); // Fetch recipes for the selected option
                     };
                     dropdown.appendChild(optionDiv);
