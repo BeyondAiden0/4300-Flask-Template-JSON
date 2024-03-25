@@ -4,8 +4,11 @@ from collections import Counter
 import re
 import numpy as np
 
-dir = "data/flavors"
-recipes = "data/reduced-recipe.json"
+# dir = "../data/flavors"
+# recipes = "../data/reduced-recipe.json"
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+data_dir = os.path.join(base_dir, "data", "flavors")
+recipes_file = os.path.join(base_dir, "data", "reduced-recipe.json")
 
 
 """
@@ -69,7 +72,7 @@ def collect_flavor_profiles_from_directory(directory):
 
 
 # Example usage: Collect all unique flavor profiles from JSONs in the current directory
-all_flavor_profiles = collect_flavor_profiles_from_directory(dir)
+all_flavor_profiles = collect_flavor_profiles_from_directory(data_dir)
 
 
 def extract_keywords(json_file):
@@ -101,8 +104,10 @@ def merge_counts(json_files):
     merged_keyword_counts = Counter()
 
     for json_file in json_files:
-        keyword_counts = extract_keywords(
-            "backend/data/flavors/"+str(json_file))
+        full_path = os.path.join(data_dir, json_file)
+        # keyword_counts = extract_keywords(
+        #     "../data/flavors/"+str(json_file))
+        keyword_counts = extract_keywords(full_path)
         merged_keyword_counts.update(keyword_counts)
 
     merged_keyword_counts = dict(
@@ -142,11 +147,11 @@ def dish_id_ingr(recipes):
     return (dishes, id, ingr)
 
 
-name_ing_data = dish_id_ingr(recipes)
+name_ing_data = dish_id_ingr(recipes_file)
 ndishes = len(name_ing_data[0])
 
 nflavors = len(all_flavor_profiles)
-json_dict = create_dict_from_directory(dir)
+json_dict = create_dict_from_directory(data_dir)
 matrix = np.zeros((ndishes, nflavors), dtype=int)
 
 # row = 0

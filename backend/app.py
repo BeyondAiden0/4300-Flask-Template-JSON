@@ -29,12 +29,6 @@ CORS(app)
 
 
 def json_search(query):
-    # matches = []
-    # merged_df = pd.merge(episodes_df, reviews_df, left_on='id', right_on='id', how='inner')
-    # matches = merged_df[merged_df['title'].str.lower().str.contains(query.lower())]
-    # matches_filtered = matches[['title', 'descr', 'imdb_rating']]
-    # matches_filtered_json = matches_filtered.to_json(orient='records')
-    # return matches_filtered_json
     merged_df = pd.merge(recipes_df, reviews_df,
                          left_on='RecipeId', right_on='RecipeId', how='inner')
     matches = merged_df[merged_df['Name'].str.lower(
@@ -48,11 +42,6 @@ def json_search(query):
 @app.route("/")
 def home():
     return render_template('base.html', title="sample html")
-
-# @app.route("/episodes")
-# def episodes_search():
-#     text = request.args.get("title")
-#     return json_search(text)
 
 
 @app.route("/recipes")
@@ -73,9 +62,9 @@ def store_user_input():
     # 1. Save userInput to a file
     with open('input_vector.txt', 'w') as file:
         # Option 1: To print the user input as vector vector (currently empty list)
-        # file.write(str(query_vector(userInput)))
+        file.write(str(query_vector(userInput)))
         # Option 2: To print the user input as string
-        file.write(userInput)
+        # file.write(userInput)
 
     # 2. User userInput as input to method in other python script
     # otherPythonMethod(userInput)
