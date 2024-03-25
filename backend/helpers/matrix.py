@@ -201,6 +201,7 @@ def query_vector(query):
         print("recipe not found")
 
 def load_user_input_and_vector(filename='input_vector.txt'):
+    os.chdir("backend")
     with open(filename, 'r') as file:
         # Read the content
         content = file.read()
@@ -216,11 +217,10 @@ def load_user_input_and_vector(filename='input_vector.txt'):
 def top_ten(input, cos_sim_matrix, dishes, recipes):
     #Get user input's dish index 
     indx = 0
-    for dish in dishes:
-        if dish[0] == input:
+    for dish in dishes[:10]:
+        if dish == input.lower():
             break
         indx = indx + 1
-
     #Get row from cosine matrix that corresponds to input
     input_dish = cos_sim_matrix[indx,:]
 
@@ -240,9 +240,9 @@ def top_ten(input, cos_sim_matrix, dishes, recipes):
             info.append([name, id, desc, recipe])
     return(info)
 
-
-final_output = top_ten(load_user_input_and_vector(filename='input_vector.txt')[0], all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
-print("1")
-print(final_output)
+userInput = load_user_input_and_vector(filename='input_vector.txt')[0]
+final_output = top_ten(userInput, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
+for result in final_output:
+    print(result)
 
 
