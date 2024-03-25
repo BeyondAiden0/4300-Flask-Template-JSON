@@ -57,14 +57,13 @@ def recipes_search():
 def store_user_input():
     data = request.json
     userInput = data['userInput']
+    userVector = query_vector(userInput) # Generate the vector from user input
+    outputTuple = (userInput, userVector.tolist()) # Prepare the tuple to be written to file
 
     # Process userInput or store it here:
     # 1. Save userInput to a file
     with open('input_vector.txt', 'w') as file:
-        # Option 1: To print the user input as vector vector (currently empty list)
-        file.write(str(query_vector(userInput)))
-        # Option 2: To print the user input as string
-        # file.write(userInput)
+        file.write(str(outputTuple))
 
     # 2. User userInput as input to method in other python script
     # otherPythonMethod(userInput)
