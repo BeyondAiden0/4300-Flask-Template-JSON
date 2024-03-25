@@ -18,3 +18,8 @@ def calculate_cosine_similarities(target_vector, other_vectors):
     sorted_similarities = target_similarities[sorted_indices]
 
     return sorted_similarities
+
+dish_flavors_mat = np.load("../../dish-ingredient-matrix.npy")
+all_dish_cos_sim_matrix = cosine_similarity(dish_flavors_mat, dish_flavors_mat)
+print(all_dish_cos_sim_matrix)
+# print(all_dish_cos_sim_matrix.shape)
