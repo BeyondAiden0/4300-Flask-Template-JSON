@@ -3,6 +3,8 @@ import json
 from collections import Counter
 import re
 import numpy as np
+import ast
+from cosineSimilarity import all_dish_cos_sim_matrix
 
 # dir = "../data/flavors"
 # recipes = "../data/reduced-recipe.json"
@@ -197,3 +199,50 @@ def query_vector(query):
         return vector
     else:
         print("recipe not found")
+
+def load_user_input_and_vector(filename='input_vector.txt'):
+    with open(filename, 'r') as file:
+        # Read the content
+        content = file.read()
+        # Safely evaluate the string to convert it back into a tuple
+        input_tuple = ast.literal_eval(content)
+        
+    # Extract the user input string and vector from the tuple
+    user_input_string = input_tuple[0]
+    user_input_vector = input_tuple[1]
+    
+    return user_input_string, user_input_vector
+
+def top_ten(input, cos_sim_matrix, dishes, recipes):
+    #Get user input's dish index 
+    indx = 0
+    for dish in dishes:
+        if dish[0] == input:
+            break
+        indx = indx + 1
+
+    #Get row from cosine matrix that corresponds to input
+    input_dish = cos_sim_matrix[indx,:]
+
+    #Get index of top 10 cosine sim scores (greatest to least)
+    top = np.argsort(input_dish)[-10:]
+    ordered = top[::-1]
+    
+    #Get corresponding info on the top 10
+    info = []
+    with open(recipes, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        for indx in ordered:
+            name = data[indx]["Name"]
+            id = data[indx]["RecipeId"]
+            desc = data[indx]["Description"]
+            recipe = data[indx]["RecipeInstructions"]
+            info.append([name, id, desc, recipe])
+    return(info)
+
+
+final_output = top_ten(load_user_input_and_vector(filename='input_vector.txt')[0], all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
+print("1")
+print(final_output)
+
+
