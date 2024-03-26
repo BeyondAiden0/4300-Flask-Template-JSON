@@ -183,6 +183,7 @@ h1 span:nth-child(14) {
 #answer-box {
     width: 700px;
     margin-top: 50px;
+    overflow-y: auto;
 }
 
 /* .episode-title {
