@@ -4,7 +4,16 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
-from helpers.matrix import query_vector
+from helpers.matrix import query_vector, top_ten, load_user_input_and_vector, name_ing_data, recipes_file
+try:
+    # Try to perform relative import (when running as a package/module)
+    from helpers.cosineSimilarity import all_dish_cos_sim_matrix
+except ImportError:
+    # Fallback to modifying the sys.path to import (when running as a script)
+    import sys
+    import os
+    sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+    from cosineSimilarity import all_dish_cos_sim_matrix
 
 # ROOT_PATH for linking with all your files.
 # Feel free to use a config.py or settings.py with a global export variable
@@ -74,6 +83,34 @@ def store_user_input():
 
     return jsonify({"status": "success", "userInput": userInput})
 
+@app.route("/top_similar", methods=["POST"])
+def top_similar():
+    data = request.json
+    user_input = data['userInput']
+    
+    # You need to ensure you have a method to generate a flavor profile vector from user_input
+    # For demonstration, let's say it returns a vector
+    user_input_vector = query_vector(user_input)
+
+    # Use the vector to find the top 10 similar dishes
+    top_dishes = top_ten(user_input, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
+
+    # Format the response
+    response = [{"Name": dish[1], "AuthorName": dish[2], "Description": dish[3], "RecipeInstructions": dish[4], "AggregatedRating": dish[5]} for dish in top_dishes]
+    
+    return jsonify(response)
+
+
+@app.route("/get_similar_dishes", methods=["POST"])
+def get_similar_dishes():
+    data = request.json
+    selected_dish = data['selectedDish']
+    
+    # Assume query_vector returns a flavor profile vector for the selected dish
+    # And top_ten returns the top 10 similar dishes based on cosine similarity
+    similar_dishes_info = top_ten(selected_dish, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
+    
+    return jsonify(similar_dishes_info)
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True, host="0.0.0.0", port=5000)

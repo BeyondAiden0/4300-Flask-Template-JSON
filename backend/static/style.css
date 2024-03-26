@@ -150,6 +150,8 @@ h1 span:nth-child(14) {
 }
 
 .input-box {
+    position: relative;
+    /* Ensures dropdown is positioned relative to this container */
     border-radius: 50px;
     border: 1px solid black;
     display: flex;
@@ -164,18 +166,18 @@ h1 span:nth-child(14) {
     width: 20px;
 }
 
-.top-text {
+/* .top-text {
     display: flex;
     flex-direction: column;
     align-items: center;
-}
+} */
 
 .input-box input {
     width: 100%;
     margin-left: 10px;
     font-size: 16px;
     border: none;
-    outline: 0;
+    outline: none;
 }
 
 #answer-box {
@@ -183,15 +185,15 @@ h1 span:nth-child(14) {
     margin-top: 50px;
 }
 
-.episode-title {
+/* .episode-title {
     font-family: 'Kanit', sans-serif;
 }
 
 .episode-desc {
     font-family: 'Montserrat', sans-serif;
-}
+} */
 
-.dropdown-content {
+/* .dropdown-content {
     display: none;
     position: absolute;
     background-color: #f9f9f9;
@@ -205,4 +207,36 @@ h1 span:nth-child(14) {
     padding: 12px 16px;
     text-decoration: none;
     display: block;
+} */
+
+#dropdown {
+    display: none;
+    /* Hidden initially */
+    position: absolute;
+    left: 0;
+    right: 0;
+    /* Ensure dropdown width matches input box */
+    top: 100%;
+    /* Aligns the dropdown right below the input box */
+    background-color: #f9f9f9;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    overflow-y: auto;
+    /* Enable scrolling for overflow */
+    max-height: 300px;
+    /* Set a max-height for scrolling */
+}
+
+#dropdown div {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+    /* Makes it clear you can click on dropdown items */
+}
+
+/* Consider adding hover styles for dropdown items */
+#dropdown div:hover {
+    background-color: #ddd;
 }

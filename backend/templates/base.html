@@ -52,6 +52,7 @@
             // Show dropdown only if there's user input
             if (userInput) {
                 showDropdown(userInput);
+                fetchTopSimilar(userInput);
             } else {
                 document.getElementById("dropdown").style.display = "none";
             }
@@ -60,6 +61,35 @@
             debounce(() => {
                 fetchRecipes(userInput);
             }, 500); // Adjust the delay as needed
+        }
+
+        function onSelectDropdownItem(selectedItem) {
+            event.preventDefault();
+
+            storeUserInput(selectedItem);
+
+            fetch('/get_similar_dishes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ selectedDish: selectedItem }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    displayTopSimilarDishes(data);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function displayTopSimilarDishes(dishes) {
+            const answerBox = document.getElementById("answer-box");
+            answerBox.innerHTML = ''; // Clear previous results
+            dishes.forEach(dish => {
+                const div = document.createElement('div');
+                div.innerHTML = answerBoxTemplate(dish.name, dish.authorName, dish.description, dish.instructions, dish.rating);
+                answerBox.appendChild(div);
+            });
         }
 
         function showDropdown(userInput) {
@@ -75,17 +105,38 @@
                         document.getElementById("filter-text-val").value = option;
                         dropdown.style.display = "none";
                         storeUserInput(option); // Store the selected option
-                        fetchRecipes(option); // Fetch recipes for the selected option
+                        // fetchRecipes(option); // Fetch recipes for the selected option
+                        onSelectDropdownItem(option);
                     };
                     dropdown.appendChild(optionDiv);
                 }
             });
 
-            dropdown.style.display = dropdown.childElementCount ? "block" : "none";
+            dropdown.style.display = "block"
         }
 
         function fetchRecipes(userInput) {
             fetch("/recipes?" + new URLSearchParams({ name: userInput }).toString())
+                .then((response) => response.json())
+                .then((data) => {
+                    const answerBox = document.getElementById("answer-box");
+                    answerBox.innerHTML = ""; // Clear previous results
+                    data.forEach(row => {
+                        const tempDiv = document.createElement("div");
+                        tempDiv.innerHTML = answerBoxTemplate(row.Name, row.AuthorName, row.Description, row.RecipeInstructions, row.AggregatedRating);
+                        answerBox.appendChild(tempDiv);
+                    });
+                });
+        }
+
+        function fetchTopSimilar(userInput) {
+            fetch('/top_similar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userInput: userInput }),
+            })
                 .then((response) => response.json())
                 .then((data) => {
                     const answerBox = document.getElementById("answer-box");

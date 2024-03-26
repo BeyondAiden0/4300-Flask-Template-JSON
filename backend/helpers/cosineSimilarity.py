@@ -1,6 +1,6 @@
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-
+import os
 
 
 def calculate_cosine_similarities(target_vector, other_vectors):
@@ -19,7 +19,10 @@ def calculate_cosine_similarities(target_vector, other_vectors):
 
     return sorted_similarities
 
-dish_flavors_mat = np.load("dish-ingredient-matrix.npy")
+
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+dish_flavors_mat_path = os.path.join(base_dir, "data", "dish-ingredient-matrix.npy")
+dish_flavors_mat = np.load(dish_flavors_mat_path)
 all_dish_cos_sim_matrix = cosine_similarity(dish_flavors_mat, dish_flavors_mat)
 # print(all_dish_cos_sim_matrix)
 # print(all_dish_cos_sim_matrix.shape)
