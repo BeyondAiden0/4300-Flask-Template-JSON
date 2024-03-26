@@ -59,7 +59,8 @@
 
             // Debouncing the search query
             debounce(() => {
-                fetchRecipes(userInput);
+                // fetchRecipes(userInput);
+                fetchTopSimilar(userInput);
             }, 500); // Adjust the delay as needed
         }
 
@@ -76,9 +77,9 @@
                 body: JSON.stringify({ selectedDish: selectedItem }),
             })
                 .then(response => response.json())
-                .then(data => {
-                    displayTopSimilarDishes(data);
-                })
+                // .then(data => {
+                //     displayTopSimilarDishes(data);
+                // })
                 .catch(error => console.error('Error:', error));
         }
 
@@ -87,7 +88,7 @@
             answerBox.innerHTML = ''; // Clear previous results
             dishes.forEach(dish => {
                 const div = document.createElement('div');
-                div.innerHTML = answerBoxTemplate(dish.name, dish.authorName, dish.description, dish.instructions, dish.rating);
+                div.innerHTML = answerBoxTemplate(dish.Name, dish.AuthorName, dish.Description, dish.RecipeInstructions, dish.AggregatedRating);
                 answerBox.appendChild(div);
             });
         }
@@ -104,7 +105,7 @@
                     optionDiv.onclick = function () {
                         document.getElementById("filter-text-val").value = option;
                         dropdown.style.display = "none";
-                        storeUserInput(option); // Store the selected option
+                        // storeUserInput(option); // Store the selected option
                         // fetchRecipes(option); // Fetch recipes for the selected option
                         onSelectDropdownItem(option);
                     };
@@ -115,19 +116,19 @@
             dropdown.style.display = "block"
         }
 
-        function fetchRecipes(userInput) {
-            fetch("/recipes?" + new URLSearchParams({ name: userInput }).toString())
-                .then((response) => response.json())
-                .then((data) => {
-                    const answerBox = document.getElementById("answer-box");
-                    answerBox.innerHTML = ""; // Clear previous results
-                    data.forEach(row => {
-                        const tempDiv = document.createElement("div");
-                        tempDiv.innerHTML = answerBoxTemplate(row.Name, row.AuthorName, row.Description, row.RecipeInstructions, row.AggregatedRating);
-                        answerBox.appendChild(tempDiv);
-                    });
-                });
-        }
+        // function fetchRecipes(userInput) {
+        //     fetch("/recipes?" + new URLSearchParams({ name: userInput }).toString())
+        //         .then((response) => response.json())
+        //         .then((data) => {
+        //             const answerBox = document.getElementById("answer-box");
+        //             answerBox.innerHTML = ""; // Clear previous results
+        //             data.forEach(row => {
+        //                 const tempDiv = document.createElement("div");
+        //                 tempDiv.innerHTML = answerBoxTemplate(row.Name, row.AuthorName, row.Description, row.RecipeInstructions, row.AggregatedRating);
+        //                 answerBox.appendChild(tempDiv);
+        //             });
+        //         });
+        // }
 
         function fetchTopSimilar(userInput) {
             fetch('/top_similar', {
