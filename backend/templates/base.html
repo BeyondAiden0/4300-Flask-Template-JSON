@@ -29,13 +29,40 @@
 
     <script>
         let debounceTimer;
+
+        // Directly getting all recipe names from matrix.py: `name_ing_data = dish_id_ingr(recipes_file)`
+        // let searchOptions = [];
+
+        // // Fetch recipe names from the backend when the page loads
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     fetch('/recipe_names')
+        //         .then(response => response.json())
+        //         .then(data => {
+        //             searchOptions = data;
+        //         })
+        //         .catch(error => console.error('Error fetching recipe names:', error));
+        // });
+
         function debounce(func, delay) {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(func, delay);
         }
 
+        // function storeUserInput(userInput) {
+        //     fetch('/store_user_input', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify({ userInput: userInput }),
+        //     })
+        //         .then(response => response.json())
+        //         .then(data => console.log('Success:', data))
+        //         .catch((error) => console.error('Error:', error));
+        // }
+
         function storeUserInput(userInput) {
-            fetch('/store_user_input', {
+            return fetch('/store_user_input', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -43,8 +70,16 @@
                 body: JSON.stringify({ userInput: userInput }),
             })
                 .then(response => response.json())
-                .then(data => console.log('Success:', data))
-                .catch((error) => console.error('Error:', error));
+                .then(data => {
+                    console.log('Success:', data);
+                    // Return a promise that resolves with the data
+                    return data;
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    // Return a rejected promise to handle the error
+                    return Promise.reject(error);
+                });
         }
 
         function filterText() {
@@ -65,22 +100,26 @@
         }
 
         function onSelectDropdownItem(selectedItem) {
+            // Prevent the default form submission behavior
             event.preventDefault();
 
-            storeUserInput(selectedItem);
-
-            fetch('/get_similar_dishes', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ selectedDish: selectedItem }),
-            })
-                .then(response => response.json())
-                // .then(data => {
-                //     displayTopSimilarDishes(data);
-                // })
-                .catch(error => console.error('Error:', error));
+            // First, store the user input
+            storeUserInput(selectedItem).then(() => {
+                // After storing user input, fetch similar dishes
+                fetch('/get_similar_dishes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ selectedDish: selectedItem }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update the UI with the similar dishes
+                        // displayTopSimilarDishes(data);
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
         }
 
         function displayTopSimilarDishes(dishes) {
@@ -94,7 +133,7 @@
         }
 
         function showDropdown(userInput) {
-            const searchOptions = ["English Muffin", "Barbeque Pork", "Sweet Carrots", "Poppy Seed Cookie", "Baked Garlic Potato Casserole", "Best Lemonade"];
+            const searchOptions = ["Best Lemonade", "Chocolate Pie", "Chicken and Pineapple Salad With Curry Mayonnaise", "Moussaka", "Cherry-Pistachio Biscotti", "Crusty Beef Casserole", "Lemon Whipped Cream"];
             const dropdown = document.getElementById("dropdown");
             dropdown.innerHTML = ""; // Clear previous options
 
@@ -105,7 +144,6 @@
                     optionDiv.onclick = function () {
                         document.getElementById("filter-text-val").value = option;
                         dropdown.style.display = "none";
-                        // storeUserInput(option); // Store the selected option
                         // fetchRecipes(option); // Fetch recipes for the selected option
                         onSelectDropdownItem(option);
                     };

@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
-from helpers.matrix import query_vector, top_ten, load_user_input_and_vector, name_ing_data, recipes_file
+from helpers.matrix import query_vector, top_ten, load_user_input_and_vector, name_ing_data, recipes_file, dish_id_ingr
 try:
     # Try to perform relative import (when running as a package/module)
     from helpers.cosineSimilarity import all_dish_cos_sim_matrix
@@ -111,6 +111,14 @@ def get_similar_dishes():
     similar_dishes_info = top_ten(selected_dish, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
     
     return jsonify(similar_dishes_info)
+
+@app.route("/recipe_names")
+def get_recipe_names():
+    # Assuming dish_id_ingr returns a tuple and the first item is a list of recipe names
+    recipe_data = dish_id_ingr(recipes_file)
+    recipe_names = recipe_data[0]
+    return jsonify(recipe_names)
+
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True, host="0.0.0.0", port=5000)
