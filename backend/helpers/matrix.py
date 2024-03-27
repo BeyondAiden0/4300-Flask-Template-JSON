@@ -11,16 +11,16 @@ except ImportError:
     # Fallback to modifying the sys.path to import (when running as a script)
     import sys
     import os
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__))))
+    sys.path.insert(0, os.path.abspath(
+        os.path.join(os.path.dirname(__file__))))
     from cosineSimilarity import all_dish_cos_sim_matrix
-
 
 
 # dir = "../data/flavors"
 # recipes = "../data/reduced-recipe.json"
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_dir = os.path.join(base_dir, "data", "flavors")
-recipes_file = os.path.join(base_dir, "data", "reduced-recipe.json")
+recipes_file = os.path.join(base_dir, "data", "random-recipe.json")
 
 
 """
@@ -164,13 +164,13 @@ ndishes = len(name_ing_data[0])
 
 nflavors = len(all_flavor_profiles)
 json_dict = create_dict_from_directory(data_dir)
-matrix = np.zeros((ndishes, nflavors), dtype=int)
 
+# matrix = np.zeros((ndishes, nflavors), dtype=int)
 # row = 0
 # print(nflavors)
 # print(ndishes)
 
-# for ingredient_list in name_ing_data[1]:
+# for ingredient_list in name_ing_data[2]:
 #     acc = []
 #     for ingredient in ingredient_list:
 
@@ -185,7 +185,7 @@ matrix = np.zeros((ndishes, nflavors), dtype=int)
 #         matrix[row][ind] = val
 #     row += 1
 
-# np.save("dish-ingredient-matrix.npy", matrix)
+# np.save("long-dish-ingredient-matrix.npy", matrix)
 # print(matrix)
 
 
@@ -210,6 +210,7 @@ def query_vector(query):
     else:
         print("recipe not found")
 
+
 def load_user_input_and_vector(filename='input_vector.txt'):
     # os.chdir("backend")
     file_path = os.path.join(base_dir, filename)
@@ -218,27 +219,29 @@ def load_user_input_and_vector(filename='input_vector.txt'):
         content = file.read()
         # Safely evaluate the string to convert it back into a tuple
         input_tuple = ast.literal_eval(content)
-        
+
     # Extract the user input string and vector from the tuple
     user_input_string = input_tuple[0]
     user_input_vector = input_tuple[1]
-    
+
     return user_input_string, user_input_vector
 
+
 def top_ten(input, cos_sim_matrix, dishes, recipes):
-    #Get user input's dish index 
+    # Get user input's dish index
     indx = 0
     for dish in dishes[:10]:
         if dish == input.lower():
             break
         indx = indx + 1
-    #Get row from cosine matrix that corresponds to input
+    # Get row from cosine matrix that corresponds to input
     input_dish_scores = cos_sim_matrix[indx]
 
-    #Get index of top 10 cosine sim scores (greatest to least)
-    sorted_indices = np.argsort(input_dish_scores)[::-1][1:11]  # Skipping the first, taking the next 10
-    
-    #Get corresponding info on the top 10
+    # Get index of top 10 cosine sim scores (greatest to least)
+    # Skipping the first, taking the next 10
+    sorted_indices = np.argsort(input_dish_scores)[::-1][1:11]
+
+    # Get corresponding info on the top 10
     info = []
     with open(recipes, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -250,7 +253,7 @@ def top_ten(input, cos_sim_matrix, dishes, recipes):
             recipe = data[indx]["RecipeInstructions"]
             aggRating = data[indx]["AggregatedRating"]
             info.append([id, name, authorName, desc, recipe, aggRating])
-    return(info)
+    return (info)
 
 # userInput = load_user_input_and_vector(filename='input_vector.txt')[0]
 # final_output = top_ten(userInput, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
@@ -261,11 +264,11 @@ def top_ten(input, cos_sim_matrix, dishes, recipes):
  # TEST
 if __name__ == "__main__":
     user_input_string, user_input_vector = load_user_input_and_vector()
-    print("Loaded user input and vector:", user_input_string, user_input_vector)
+    print("Loaded user input and vector:",
+          user_input_string, user_input_vector)
 
-    top_dishes_info = top_ten(user_input_string, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
+    top_dishes_info = top_ten(
+        user_input_string, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
     print("Top 10 similar dishes:")
     for dish in top_dishes_info:
         print(dish)
-
-
