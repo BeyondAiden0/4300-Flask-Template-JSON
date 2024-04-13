@@ -1,15 +1,50 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
+import json
+
+def extract_names(json_data):
+    """
+    Extracts all 'Name' fields from a JSON object and returns them in a list
+
+    Arguments
+    ========
+        json_data: JSON data in string format
+
+    Returns:
+        names: List of names extracted from the JSON data
+    """
+    # Load the JSON data
+    data = json.loads(json_data)
+
+    # Initialize an empty list to store the names
+    names = []
+
+    # Iterate over each recipe in the data
+    for recipe in data['recipes']:
+        # Add the name of the recipe to the list
+        names.append(recipe['Name'])
+
+    return names
 
 def cossimNameMatch(user_input, recipe_list):
     """
     Finds top 10 similar dish names within database using cosine similarity
 
+    NOTE:
+    cossimNameMatch needs you to pass the JSON data as a string to it. 
+    So if the JSON data is in a file, we can read it into a string as such:
+        with open('fast_test.json', 'r') as f:
+            json_data = f.read()
+        names = extract_names(json_data)
+
+    And then feed cossimNameMatch something like:
+        cossimNameMatch("pork", names)
+
     Arguments
     ========
-        user_input: user input of String?
+        user_input: user input of String
 
-        recipe_list: intended database
+        recipe_list: intended database (must be a List, can use )
 
     Returns:
         top_10_similar: ranked list of top 10 results
