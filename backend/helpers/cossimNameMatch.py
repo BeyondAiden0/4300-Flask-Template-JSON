@@ -20,7 +20,7 @@ def extract_names(json_data):
     names = []
 
     # Iterate over each recipe in the data
-    for recipe in data['recipes']:
+    for recipe in data: # add ['recipes'] after data if not using random-recipe.json
         # Add the name of the recipe to the list
         names.append(recipe['Name'])
 
@@ -30,7 +30,7 @@ def cossimNameMatch(user_input, recipe_list):
     """
     Finds top 10 similar dish names within database using cosine similarity
 
-    NOTE:
+    Note:
     cossimNameMatch needs you to pass the JSON data as a string to it. 
     So if the JSON data is in a file, we can read it into a string as such:
         with open('fast_test.json', 'r') as f:
@@ -77,3 +77,13 @@ def cossimNameMatch(user_input, recipe_list):
     top_10_similar = [recipe_list[i] for i in dish_indices]
 
     return top_10_similar
+
+import os
+print(os.getcwd())
+
+
+with open('backend\\data\\random-recipe.json', 'r', encoding='utf-8') as f:
+    json_data = f.read()
+names = extract_names(json_data)
+
+print(cossimNameMatch("pulled spork", names))
