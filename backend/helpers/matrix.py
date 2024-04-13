@@ -4,31 +4,19 @@ from collections import Counter
 import re
 import numpy as np
 import ast
-try:
-    # Try to perform relative import (when running as a package/module)
-    from .cosineSimilarity import all_dish_cos_sim_matrix
-except ImportError:
-    # Fallback to modifying the sys.path to import (when running as a script)
-    import sys
-    import os
-    sys.path.insert(0, os.path.abspath(
-        os.path.join(os.path.dirname(__file__))))
-    from cosineSimilarity import all_dish_cos_sim_matrix
+from scipy.sparse.linalg import svds
 
-
-# dir = "../data/flavors"
-# recipes = "../data/reduced-recipe.json"
-base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-data_dir = os.path.join(base_dir, "data", "flavors")
-recipes_file = os.path.join(base_dir, "data", "random-recipe.json")
 
 
 """
-takes the json directory, and gives a list of all the jsons in a dict, in the form
-of {"ingredient-name":"json-file-name"} ex: {"eggs":"0 eggs.json"}
+Returns a dictionary of the format: {"ingredient-name":"json-file-name"} given a json 
+directory
+
+Relates each ingredient to the json file containing information on the ingredient 
+(flavor profiles, molecules, etc.)
+
+ex: {'egg': '0 Egg.json', 'bakery products': '1 Bakery Products.json',..}
 """
-
-
 def create_dict_from_directory(directory):
     dict_files = {}
     for item in os.listdir(directory):
@@ -38,112 +26,100 @@ def create_dict_from_directory(directory):
     return dict_files
 
 
+"""
+Returns a set of all flavor profile listed within an ingredient's json file 
+"""
 def get_flavor_profiles(json_file):
-    # Initialize an empty set to store the flavor profiles
     flavor_profiles = set()
-
-    # Open and load the JSON file
     with open(json_file, 'r') as f:
         data = json.load(f)
-
-    # Iterate over the 'molecules' list in the data
     for molecule in data['molecules']:
-        # If 'fooddb_flavor_profile' key exists in the molecule
         if 'flavor_profile' in molecule:
-            # Split the flavor profiles by '@' and add them to the set
             flavor_profiles.update(molecule['flavor_profile'].split('@'))
-
-    # Remove the empty string if it exists
     flavor_profiles.discard('')
-
-    # Return the set of flavor profiles
     return flavor_profiles
 
 
 """
-takes a directory of json files, and combines it all into one set of all the flavors
+Returns a set of all unique flavors within the directory/dataset
+Determines the unique flavors from all the ingredients within the dataset
 """
-
-
 def collect_flavor_profiles_from_directory(directory):
-    # Initialize an empty set to store all unique flavor profiles
     all_flavor_profiles = set()
-
     for item in os.listdir(directory):
         if item.endswith('.json'):
-            # Get the flavor profiles from the current JSON file
-            flavor_profiles = get_flavor_profiles(
-                os.path.join(directory, item))
-            # Add them to the set of all flavor profiles
+            flavor_profiles = get_flavor_profiles(os.path.join(directory, item))
             all_flavor_profiles.update(flavor_profiles)
-
-    # Convert the set to a list, remove the empty string, and sort it alphabetically
     all_flavor_profiles = sorted([fp for fp in all_flavor_profiles if fp])
-
     return all_flavor_profiles
 
 
-# Example usage: Collect all unique flavor profiles from JSONs in the current directory
-all_flavor_profiles = collect_flavor_profiles_from_directory(data_dir)
-
-
+"""
+Returns a dictionary of the format {flavor_name: flavor_occurence} given an
+ingredient's json file
+"""
 def extract_keywords(json_file):
     keyword_counts = {}
-
     with open(json_file, 'r') as f:
         data = json.load(f)
         for molecule in data['molecules']:
             if 'flavor_profile' in molecule:
                 keywords = molecule['flavor_profile'].split('@')
                 for keyword in keywords:
-                    if keyword:  # ignore empty str
+                    if keyword: 
                         if keyword in keyword_counts:
                             keyword_counts[keyword] += 1
                         else:
                             keyword_counts[keyword] = 1
-
     return dict(sorted(keyword_counts.items(), key=lambda item: item[1], reverse=True))
 
 
 """
-creato the flavor dict where the key is the flavor and the value is the count of the flavors
-returns dict
+Returns a dictionary of the format {flavor_name: flavor_occurence} given a 
+list of ingredient's json files
 """
-
-
 def merge_counts(json_files):
-
     merged_keyword_counts = Counter()
-
     for json_file in json_files:
         full_path = os.path.join(data_dir, json_file)
-        # keyword_counts = extract_keywords(
-        #     "../data/flavors/"+str(json_file))
         keyword_counts = extract_keywords(full_path)
         merged_keyword_counts.update(keyword_counts)
-
     merged_keyword_counts = dict(
         sorted(merged_keyword_counts.items(), key=lambda item: item[1], reverse=True))
     return merged_keyword_counts
 
 
+"""
+Returns a dictionary of the format {flavor_name: flavor_occurence} such that the size/
+number of items in the dictionary is equal to the total number of unique flavors 
+
+dict_x is a dictionary of the format {flavor_name: flavor_occurence} for a 
+single dish such that the size/number of items in the dictionary may differ
+from that another dish since not all flavors may have been accounted/detected
+
+This function standardizes the size of the dictionaries used to represent each dish's
+flavor profile (equal to the total number of unique flavors).
+
+The values of the dictionary is the 'flavor vector' of the dish. (Each value 
+represents the occurrence of the respective flavor in the dish's flavor profile)
+"""
 def compare_dict_with_flavor_profiles(dict_X, all_flavor_profiles):
-    # Initialize a dictionary with all flavor profiles as keys and 0 as values
     flavor_profile_counts = dict.fromkeys(all_flavor_profiles, 0)
-
-    # Iterate over the items in dict_X
     for key, value in dict_X.items():
-        # If the key exists in the flavor profiles
         if key in flavor_profile_counts:
-            # Update the count in the flavor profiles dictionary
             flavor_profile_counts[key] += value
-
     return flavor_profile_counts
 
 
-print(os.getcwd())
+"""
+Returns a tuple of the format (dish_name, dish_id, ingredients), each of which is a list
+given a recipes file (containing multiple recipes)
 
+For each list in the tuple (dish_name, dish_id, and ingredients), the items with the same 
+index are from the same recipe 
 
+ex: dish_name[0] has an id of dish_id[0] with ingredients ingredients[0]
+"""
 def dish_id_ingr(recipes):
     id = []
     ingr = []
@@ -151,7 +127,6 @@ def dish_id_ingr(recipes):
     with open(recipes, 'r', encoding='utf-8') as f:
         data = json.load(f)
         for dish in data:
-            # entry = (dish["Name"], dish["RecipeId"])
             dishes.append(dish["Name"].lower())
             id.append(dish["RecipeId"])
             ingr.append(
@@ -159,35 +134,39 @@ def dish_id_ingr(recipes):
     return (dishes, id, ingr)
 
 
-name_ing_data = dish_id_ingr(recipes_file)
-ndishes = len(name_ing_data[0])
+"""
+Saves the matrix of all the dishes against the latent dimensions (flavors) 
+[dish_latentflavors] and the matrix of the all the flavors against 
+the latent dimensions (flavors) [latentflavor_flavors_trans.T] generated by 
+apply SVD on the matrix of all dishes against all the flavors
+"""
+def flavor_matrix_svd(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles):
+    matrix = np.zeros((ndishes, nflavors), dtype=int)
+    row = 0
+    for ingredient_list in name_ing_data[2]:
+        acc = []
+        for ingredient in ingredient_list:
+            if ingredient.lower() in json_dict.keys():
+                acc.append(json_dict[ingredient.lower()])
+        flavors = merge_counts(acc)
+        for flavor in flavors.keys():
+            ind = all_flavor_profiles.index(flavor)
+            val = flavors[flavor]
+            matrix[row][ind] = val
+        row += 1
 
-nflavors = len(all_flavor_profiles)
-json_dict = create_dict_from_directory(data_dir)
+    dish_latentflavors, importance, latentflavor_flavors_trans = np.linalg.svd(matrix, full_matrices=False)
+    #np.save("dish-latent-flavors-matrix.npy", dish_latentflavors)
+    #np.save("latent-flavors-flavors-matrix.npy", latentflavor_flavors_trans.T)
 
-# matrix = np.zeros((ndishes, nflavors), dtype=int)
-# row = 0
-# print(nflavors)
-# print(ndishes)
 
-# for ingredient_list in name_ing_data[2]:
-#     acc = []
-#     for ingredient in ingredient_list:
+"""
+Returns the (numpy array/vector) 'flavor vector' of the query. Each value in the vector
+represents the occurrence of the respective flavor in the dish's flavor profile. The size/
+number of items in the dictionary is equal to the total number of unique flavors 
+"""
 
-#         if ingredient.lower() in json_dict.keys():
-
-#             acc.append(json_dict[ingredient.lower()])
-#     flavors = merge_counts(acc)
-
-#     for flavor in flavors.keys():
-#         ind = all_flavor_profiles.index(flavor)
-#         val = flavors[flavor]
-#         matrix[row][ind] = val
-#     row += 1
-
-# np.save("long-dish-ingredient-matrix.npy", matrix)
-# print(matrix)
-
+#IMPLEMENT _______ HERE INSTEAD
 
 def query_vector(query):
     vector = np.zeros(nflavors, dtype=int)
@@ -196,12 +175,9 @@ def query_vector(query):
         ings = name_ing_data[2][name_ing_data[0].index(q)]
         acc = []
         for ingredient in ings:
-
             if ingredient.lower() in json_dict.keys():
-
                 acc.append(json_dict[ingredient.lower()])
         flavors = merge_counts(acc)
-
         for flavor in flavors.keys():
             ind = all_flavor_profiles.index(flavor)
             val = flavors[flavor]
@@ -211,64 +187,79 @@ def query_vector(query):
         print("recipe not found")
 
 
-def load_user_input_and_vector(filename='input_vector.txt'):
-    # os.chdir("backend")
-    file_path = os.path.join(base_dir, filename)
-    with open(file_path, 'r') as file:
-        # Read the content
-        content = file.read()
-        # Safely evaluate the string to convert it back into a tuple
-        input_tuple = ast.literal_eval(content)
+"""
+Returns the stored user's inputted dish along with the dish's 'flavor vector.'
 
-    # Extract the user input string and vector from the tuple
+The stored user's input refers the the user's final selection of a dish from the drop 
+down menu. To ensure that the user's input is within our dataset, we have the user  
+select a dish from a drop down menu. The dishes listed in the drop down menu will be
+order based on edit distance where most similar dish to the user's original input is 
+listed first.
+"""
+
+#EDIT (POSSIBLY REMOVE VECTOR)
+
+def load_user_input_and_vector(filename='input_vector.txt'):
+    os.chdir("backend")
+    with open(filename, 'r') as file:
+        content = file.read()
+        input_tuple = ast.literal_eval(content)
     user_input_string = input_tuple[0]
     user_input_vector = input_tuple[1]
-
     return user_input_string, user_input_vector
 
+"""
+Returns the top ten most similar dish to the user's input, along with their 
+respective name, ID, description, and recipe instructions. 
+"""
+#EDIT BASED ON TA FEEDBACK
 
 def top_ten(input, cos_sim_matrix, dishes, recipes):
-    # Get user input's dish index
+    #Get user input's dish index 
     indx = 0
     for dish in dishes[:10]:
         if dish == input.lower():
             break
         indx = indx + 1
-    # Get row from cosine matrix that corresponds to input
-    input_dish_scores = cos_sim_matrix[indx]
+    #Get row from cosine matrix that corresponds to input
+    input_dish = cos_sim_matrix[indx,:]
 
-    # Get index of top 10 cosine sim scores (greatest to least)
-    # Skipping the first, taking the next 10
-    sorted_indices = np.argsort(input_dish_scores)[::-1][1:11]
-
-    # Get corresponding info on the top 10
+    #Get index of top 10 cosine sim scores (greatest to least)
+    top = np.argsort(input_dish)[-10:]
+    ordered = top[::-1]
+    
+    #Get corresponding info on the top 10
     info = []
     with open(recipes, 'r', encoding='utf-8') as f:
         data = json.load(f)
-        for indx in sorted_indices:
-            id = data[indx]["RecipeId"]
+        for indx in ordered:
             name = data[indx]["Name"]
-            authorName = data[indx]["AuthorName"]
+            id = data[indx]["RecipeId"]
             desc = data[indx]["Description"]
             recipe = data[indx]["RecipeInstructions"]
-            aggRating = data[indx]["AggregatedRating"]
-            info.append([id, name, authorName, desc, recipe, aggRating])
-    return (info)
-
-# userInput = load_user_input_and_vector(filename='input_vector.txt')[0]
-# final_output = top_ten(userInput, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
-# for result in final_output:
-#     print(result)
+            info.append([name, id, desc, recipe])
+    return(info)
 
 
- # TEST
-if __name__ == "__main__":
-    user_input_string, user_input_vector = load_user_input_and_vector()
-    print("Loaded user input and vector:",
-          user_input_string, user_input_vector)
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+data_dir = os.path.join(base_dir, "data", "flavors")
+recipes_file = os.path.join(base_dir, "data", "reduced-recipe.json")
 
-    top_dishes_info = top_ten(
-        user_input_string, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
-    print("Top 10 similar dishes:")
-    for dish in top_dishes_info:
-        print(dish)
+# Collect all unique flavor profiles from JSONs in the current directory
+all_flavor_profiles = collect_flavor_profiles_from_directory(data_dir)
+
+# Contains (dish_name, dish_id, ingredients)
+name_ing_data = dish_id_ingr(recipes_file)
+# Total Number of Dishes
+ndishes = len(name_ing_data[0])
+# Total Number of Flavors
+nflavors = len(all_flavor_profiles)
+
+json_dict = create_dict_from_directory(data_dir)
+
+flavor_matrix_svd(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles)
+
+userInput = load_user_input_and_vector(filename='input_vector.txt')[0]
+final_output = top_ten(userInput, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
+for result in final_output:
+    print(result)
