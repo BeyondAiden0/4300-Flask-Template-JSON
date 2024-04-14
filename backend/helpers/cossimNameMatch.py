@@ -1,6 +1,13 @@
+import os
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import linear_kernel
+from sklearn.metrics.pairwise import cosine_similarity
 import json
+import cProfile
+import heapq
+import timeit
+
+
 
 def extract_names(json_data):
     """
@@ -20,70 +27,59 @@ def extract_names(json_data):
     names = []
 
     # Iterate over each recipe in the data
-    for recipe in data: # add ['recipes'] after data if not using random-recipe.json
+    for recipe in data:  # add ['recipes'] after data if not using random-recipe.json
         # Add the name of the recipe to the list
         names.append(recipe['Name'])
-
+        
     return names
 
-def cossimNameMatch(user_input, recipe_list):
+def cossimNameMatch(user_input, vectorizer, tfidf_matrix, recipe_list):
     """
     Finds top 10 similar dish names within database using cosine similarity
-
-    Note:
-    cossimNameMatch needs you to pass the JSON data as a string to it. 
-    So if the JSON data is in a file, we can read it into a string as such:
-        with open('fast_test.json', 'r') as f:
-            json_data = f.read()
-        names = extract_names(json_data)
-
-    And then feed cossimNameMatch something like:
-        cossimNameMatch("pork", names)
 
     Arguments
     ========
         user_input: user input of String
-
-        recipe_list: intended database (must be a List, can use )
+        vectorizer: Precomputed TfidfVectorizer
+        tfidf_matrix: Precomputed TF-IDF matrix
+        recipe_list: List of recipes
 
     Returns:
         top_10_similar: ranked list of top 10 results
     """
-    # Adding user input to the recipe list
-    recipe_list.append(user_input)
+    # Transform the user_input into the TF-IDF space
+    user_input_vector = vectorizer.transform([user_input])
 
-    # Vectorizing the text data
-    vectorizer = TfidfVectorizer().fit_transform(recipe_list)
+    # Compute the cosine similarity with the pre-computed vectors
+    cosine_sim = cosine_similarity(user_input_vector, tfidf_matrix)
 
-    # Compute the cosine similarity matrix
-    cosine_sim = linear_kernel(vectorizer, vectorizer)
+    # Get the pairwise similarity scores of all dishes with that dish
+    sim_scores = list(enumerate(cosine_sim[0]))
 
-    # Get the index of the user_input in the cosine_sim matrix
-    idx = len(cosine_sim) - 1
-
-    # Get the pairwsie similarity scores of all dishes with that dish
-    sim_scores = list(enumerate(cosine_sim[idx]))
-
-    # Sort the dishes based on the similarity scores
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-
-    # Get the scores of the 10 most similar dishes
-    sim_scores = sim_scores[1:11]
+    # Use a heap to maintain the top 10 scores
+    top_10_similar = heapq.nlargest(10, sim_scores, key=lambda x: x[1])
 
     # Get the dish indices
-    dish_indices = [i[0] for i in sim_scores]
+    dish_indices = [i[0] for i in top_10_similar]
 
     # Return the top 10 most similar dishes
     top_10_similar = [recipe_list[i] for i in dish_indices]
 
     return top_10_similar
 
-import os
 print(os.getcwd())
-
 
 with open('backend\\data\\random-recipe.json', 'r', encoding='utf-8') as f:
     json_data = f.read()
+    
+start = timeit.default_timer()
 names = extract_names(json_data)
+end = timeit.default_timer()
 
-print(cossimNameMatch("pulled spork", names))
+print(end-start)
+# Pre-compute the vectorizer and the TF-IDF matrix
+vectorizer = TfidfVectorizer().fit(names)
+tfidf_matrix = vectorizer.transform(names)
+
+
+print(cossimNameMatch("pulled spork", vectorizer, tfidf_matrix, names))
