@@ -5,7 +5,8 @@ import re
 import numpy as np
 import ast
 from scipy.sparse.linalg import svds
-from cosineSimilarity import all_dish_cos_sim_matrix
+from sklearn.metrics.pairwise import cosine_similarity
+from numpy import linalg as LA
 
 
 """
@@ -154,37 +155,10 @@ def flavor_matrix_svd(ndishes, nflavors, name_ing_data, json_dict, all_flavor_pr
             val = flavors[flavor]
             matrix[row][ind] = val
         row += 1
-    dish_latentflavors, importance, latentflavor_flavors_trans = svds(matrix, k = 100)
-    print (importance)
-    np.save("dish-latent-flavors-matrix.npy", dish_latentflavors)
-    np.save("latent-flavors-flavors-matrix.npy", latentflavor_flavors_trans.T)
-
-
-"""
-Returns the (numpy array/vector) 'flavor vector' of the query. Each value in the vector
-represents the occurrence of the respective flavor in the dish's flavor profile. The size/
-number of items in the dictionary is equal to the total number of unique flavors 
-"""
-
-#IMPLEMENT _______ HERE INSTEAD
-
-def query_vector(query):
-    vector = np.zeros(nflavors, dtype=int)
-    q = query.lower()
-    if q in name_ing_data[0]:
-        ings = name_ing_data[2][name_ing_data[0].index(q)]
-        acc = []
-        for ingredient in ings:
-            if ingredient.lower() in json_dict.keys():
-                acc.append(json_dict[ingredient.lower()])
-        flavors = merge_counts(acc)
-        for flavor in flavors.keys():
-            ind = all_flavor_profiles.index(flavor)
-            val = flavors[flavor]
-            vector[ind] = val
-        return vector
-    else:
-        print("recipe not found")
+    #dish_latentflavors, importance, latentflavor_flavors_trans = svds(matrix, k = 500)
+    #np.save((os.path.join(base_dir, "data","dish-latent-flavors-matrix.npy")), dish_latentflavors)
+    #np.save((os.path.join(base_dir, "data","latent-flavors-flavors-matrix.npy")), latentflavor_flavors_trans.T)
+    return(matrix)
 
 
 """
@@ -196,17 +170,14 @@ select a dish from a drop down menu. The dishes listed in the drop down menu wil
 order based on edit distance where most similar dish to the user's original input is 
 listed first.
 """
-
-#EDIT (POSSIBLY REMOVE VECTOR)
-
-def load_user_input_and_vector(filename='input_vector.txt'):
+def load_user_input(filename='input_vector.txt'):
     os.chdir("backend")
     with open(filename, 'r') as file:
         content = file.read()
         input_tuple = ast.literal_eval(content)
     user_input_string = input_tuple[0]
-    user_input_vector = input_tuple[1]
-    return user_input_string, user_input_vector
+    return user_input_string
+
 
 """
 Returns the top ten most similar dish to the user's input, along with their 
@@ -214,32 +185,38 @@ respective name, ID, description, and recipe instructions.
 """
 #EDIT BASED ON TA FEEDBACK
 
-def top_ten(input, cos_sim_matrix, dishes, recipes):
-    #Get user input's dish index 
-    indx = 0
-    for dish in dishes[:10]:
-        if dish == input.lower():
-            break
-        indx = indx + 1
-    #Get row from cosine matrix that corresponds to input
-    input_dish = cos_sim_matrix[indx,:]
+def top_ten(query_sim, name_ing_data, dish_latentflavors, recipes):
+    index = name_ing_data[0].index(query_sim.lower())
+    vect = dish_latentflavors[index,:]
 
-    #Get index of top 10 cosine sim scores (greatest to least)
-    top = np.argsort(input_dish)[-10:]
+    laplace = np.copy(dish_latentflavors) + 1
+    pairs = np.size(laplace, 0)
+    totals = np.sum(dish_latentflavors, axis = 0) + pairs
+    smoothed = np.divide(laplace,totals)
+
+    dish_sim = []
+    for row in smoothed:
+        dish_sim.append(np.dot(vect, row) / (LA.norm(vect) * LA.norm(row)))
+    dish_cossim = np.array(dish_sim)
+    top = np.argsort(dish_cossim)[-11:]
     ordered = top[::-1]
-    
-    #Get corresponding info on the top 10
+    #final = np.delete(ordered, np.where(ordered == index))
+    #if np.size(final) != 10:
+        #final = final[:10]  
     info = []
     with open(recipes, 'r', encoding='utf-8') as f:
         data = json.load(f)
+        #for indx in final:
         for indx in ordered:
             name = data[indx]["Name"]
-            id = data[indx]["RecipeId"]
-            desc = data[indx]["Description"]
-            recipe = data[indx]["RecipeInstructions"]
-            info.append([name, id, desc, recipe])
+            #id = data[indx]["RecipeId"]
+            #desc = data[indx]["Description"]
+            #recipe = data[indx]["RecipeInstructions"]
+            #info.append([name, id, desc, recipe])
+            info.append((name, dish_sim[indx]))
     return(info)
 
+#######################################################################################
 
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_dir = os.path.join(base_dir, "data", "flavors")
@@ -250,16 +227,30 @@ all_flavor_profiles = collect_flavor_profiles_from_directory(data_dir)
 
 # Contains (dish_name, dish_id, ingredients)
 name_ing_data = dish_id_ingr(recipes_file)
+
 # Total Number of Dishes
 ndishes = len(name_ing_data[0])
+
 # Total Number of Flavors
 nflavors = len(all_flavor_profiles)
 
 json_dict = create_dict_from_directory(data_dir)
+matrix = flavor_matrix_svd(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles)
 
-flavor_matrix_svd(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles)
+# U in SVD (dish against latent dimensions)
+dish_latentflavors_path = os.path.join(base_dir, "data", "dish-latent-flavors-matrix.npy")
+dish_latentflavors = np.load(dish_latentflavors_path)
 
-userInput = load_user_input_and_vector(filename='input_vector.txt')[0]
-final_output = top_ten(userInput, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
+userInput = load_user_input(filename='input_vector.txt')
+
+final_output1 = top_ten("pulled pork", name_ing_data, dish_latentflavors, recipes_file)
+for result in final_output1:
+    print(result)
+
+print("+++++++++++++++++++++++++")
+
+final_output = top_ten("pulled pork", name_ing_data, matrix, recipes_file)
 for result in final_output:
     print(result)
+
+
