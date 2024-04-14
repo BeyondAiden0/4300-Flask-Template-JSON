@@ -2,6 +2,8 @@ import json
 import csv
 from collections import defaultdict
 
+#Step 1: link all recipeids from random-recipe to average reviews; returns a dict
+
 def construct_reviews(recipe_data, review_data):
     """
     Links all 'RecipeId's from a JSON object to their corresponding averaged reviews and returns them in a dict
@@ -45,15 +47,10 @@ def construct_reviews(recipe_data, review_data):
     
     return big_dict
 
-
-#Step 1: link all recipeids from random-recipe to average reviews; returns a dict
+#ditct = construct_reviews('backend\\data\\random-recipe.json','C:\\Users\\Kevin\\Documents\\CS4300\\finalproj\\jsonstorage\\rev.csv')
+#print(ditct)
 
 #Step 2: figure out some weighting system for the reviews, update the dict values to that weighing
-
-#Step 3: given a ranked list of recipes, apply our weighting of reviews onto it
-
-ditct = construct_reviews('backend\\data\\random-recipe.json','C:\\Users\\Kevin\\Documents\\CS4300\\finalproj\\jsonstorage\\rev.csv')
-#print(ditct)
 
 def weigh_reviews(linked_data):
     """
@@ -81,6 +78,38 @@ def weigh_reviews(linked_data):
     
     return another_big_dict
 
-weighgedede = weigh_reviews(ditct)
-print(weighgedede)
+#weighgedede = weigh_reviews(ditct)
+#print(weighgedede)
 
+#Step 3: given a ranked list of recipes, apply our weighting of reviews onto it
+
+def rerank_review(ranked_orig, linked_data):
+    """
+    Applies our weighting of reviews onto ranked_orig, returning a weighted ranked list 
+
+    Arguments
+    ========
+        ranked_orig: list of list? of recipes to be weighed (should be from top_ten)
+        linked_data: dict of recipes from weigh_reviews() that have their respective average review rating as values
+
+    Returns:
+        weighted: list of list? of weighed recipes
+    """
+    weighted = []
+    for recipe in ranked_orig:
+        recipe_id = recipe[1]  # second element in the list is the RecipeId?
+        if recipe_id in linked_data:
+            weight = linked_data[recipe_id]['weight']
+            cosine_similarity = recipe[1]
+            weighted_similarity = cosine_similarity * weight
+            weighted_recipe = recipe.copy()
+            weighted_recipe[1] = weighted_similarity
+            weighted.append(weighted_recipe)
+        else:
+            weighted.append(recipe)
+    
+    # sort the list by the weighted similarity in descending order
+    weighted.sort(key=lambda x: x[1], reverse=True)
+    
+    return weighted
+    
