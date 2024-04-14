@@ -1,5 +1,5 @@
 <!doctype html>
-<title>{% block title %}{% endblock %} - Flaskr</title>
+<title>Flavor Match</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,116 +10,83 @@
     <div class="full-body-container">
         <div class="top-text">
             <div>
-
-                <h1><span>F</span><span>l</span><span>a</span><span>v</span><span>o</span><span></span><span>r</span><span>M</span><span>a</span><span>t</span><span></span><span>c</span><span>h</span>
-                </h1>
+                <h1><span>F</span><span>l</span><span>a</span><span>v</span><span>o</span><span></span><span>r</span><span>M</span><span>a</span><span>t</span><span></span><span>c</span><span>h</span></h1>
             </div>
-
             <div class="input-box" onclick="sendFocus()">
                 <img src="{{ url_for('static', filename='images/mag.png') }}" />
                 <input placeholder="Search for a recipe" id="filter-text-val" onkeyup="filterText()" autocomplete="off">
                 <div id="dropdown" class="dropdown-content"></div>
             </div>
-
         </div>
-        <div id="answer-box">
-
-        </div>
+        <div id="answer-box"></div>
     </div>
 
     <script>
-        let debounceTimer;
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/recipe_names')
+                .then(response => response.json())
+                .then(data => {
+                    window.recipeNames = data; // Store recipe names globally
+                })
+                .catch(error => console.error('Error fetching recipe names:', error));
+        });
 
-        // Directly getting all recipe names from matrix.py: `name_ing_data = dish_id_ingr(recipes_file)`
-        // let searchOptions = [];
-
-        // // Fetch recipe names from the backend when the page loads
-        // document.addEventListener('DOMContentLoaded', function () {
-        //     fetch('/recipe_names')
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             searchOptions = data;
-        //         })
-        //         .catch(error => console.error('Error fetching recipe names:', error));
-        // });
+        function sendFocus() {
+            document.getElementById('filter-text-val').focus();
+        }
 
         function debounce(func, delay) {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(func, delay);
         }
 
-        // function storeUserInput(userInput) {
-        //     fetch('/store_user_input', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //         body: JSON.stringify({ userInput: userInput }),
-        //     })
-        //         .then(response => response.json())
-        //         .then(data => console.log('Success:', data))
-        //         .catch((error) => console.error('Error:', error));
-        // }
+        function filterText() {
+            let userInput = document.getElementById("filter-text-val").value;
+            showDropdown(userInput);
+        }
+
+        function showDropdown(userInput) {
+            const dropdown = document.getElementById("dropdown");
+            dropdown.innerHTML = ""; // Clear previous options
+            window.recipeNames.forEach(option => {
+                if (option.toLowerCase().includes(userInput.toLowerCase())) {
+                    const optionDiv = document.createElement("div");
+                    optionDiv.textContent = option;
+                    optionDiv.onclick = function () {
+                        document.getElementById("filter-text-val").value = option;
+                        dropdown.style.display = "none";
+                        storeUserInput(option);
+                    };
+                    dropdown.appendChild(optionDiv);
+                }
+            });
+            dropdown.style.display = "block";
+        }
 
         function storeUserInput(userInput) {
-            return fetch('/store_user_input', {
+            fetch('/store_user_input', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ userInput: userInput }),
+                body: JSON.stringify({ userInput: userInput })
             })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Success:', data);
-                    // Return a promise that resolves with the data
-                    return data;
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                    // Return a rejected promise to handle the error
-                    return Promise.reject(error);
-                });
+            .then(response => response.json())
+            .then(data => {
+                fetchTopSimilarDishes();
+            })
+            .catch((error) => console.error('Error storing user input:', error));
         }
 
-        function filterText() {
-            let userInput = document.getElementById("filter-text-val").value;
-            // Show dropdown only if there's user input
-            if (userInput) {
-                showDropdown(userInput);
-                fetchTopSimilar(userInput);
-            } else {
-                document.getElementById("dropdown").style.display = "none";
-            }
-
-            // Debouncing the search query
-            debounce(() => {
-                // fetchRecipes(userInput);
-                fetchTopSimilar(userInput);
-            }, 500); // Adjust the delay as needed
-        }
-
-        function onSelectDropdownItem(selectedItem) {
-            // Prevent the default form submission behavior
-            event.preventDefault();
-
-            // First, store the user input
-            storeUserInput(selectedItem).then(() => {
-                // After storing user input, fetch similar dishes
-                fetch('/get_similar_dishes', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ selectedDish: selectedItem }),
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Update the UI with the similar dishes
-                        // displayTopSimilarDishes(data);
-                    })
-                    .catch(error => console.error('Error:', error));
-            });
+        function fetchTopSimilarDishes() {
+            fetch('/get_similar_dishes', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayTopSimilarDishes(data);
+            })
+            .catch(error => console.error('Error:', error));
         }
 
         function displayTopSimilarDishes(dishes) {
@@ -127,80 +94,19 @@
             answerBox.innerHTML = ''; // Clear previous results
             dishes.forEach(dish => {
                 const div = document.createElement('div');
-                div.innerHTML = answerBoxTemplate(dish.Name, dish.AuthorName, dish.Description, dish.RecipeInstructions, dish.AggregatedRating);
+                div.innerHTML = answerBoxTemplate(dish[0], dish[2], dish[3], dish[4], dish[1]);
                 answerBox.appendChild(div);
             });
         }
 
-        function showDropdown(userInput) {
-            const searchOptions = ["Best Lemonade", "Chocolate Pie", "Chicken and Pineapple Salad With Curry Mayonnaise", "Moussaka", "Cherry-Pistachio Biscotti", "Crusty Beef Casserole", "Lemon Whipped Cream"];
-            const dropdown = document.getElementById("dropdown");
-            dropdown.innerHTML = ""; // Clear previous options
-
-            searchOptions.forEach(option => {
-                if (option.toLowerCase().includes(userInput.toLowerCase())) {
-                    const optionDiv = document.createElement("div");
-                    optionDiv.textContent = option;
-                    optionDiv.onclick = function () {
-                        document.getElementById("filter-text-val").value = option;
-                        dropdown.style.display = "none";
-                        // fetchRecipes(option); // Fetch recipes for the selected option
-                        onSelectDropdownItem(option);
-                    };
-                    dropdown.appendChild(optionDiv);
-                }
-            });
-
-            dropdown.style.display = "block"
-        }
-
-        // function fetchRecipes(userInput) {
-        //     fetch("/recipes?" + new URLSearchParams({ name: userInput }).toString())
-        //         .then((response) => response.json())
-        //         .then((data) => {
-        //             const answerBox = document.getElementById("answer-box");
-        //             answerBox.innerHTML = ""; // Clear previous results
-        //             data.forEach(row => {
-        //                 const tempDiv = document.createElement("div");
-        //                 tempDiv.innerHTML = answerBoxTemplate(row.Name, row.AuthorName, row.Description, row.RecipeInstructions, row.AggregatedRating);
-        //                 answerBox.appendChild(tempDiv);
-        //             });
-        //         });
-        // }
-
-        function fetchTopSimilar(userInput) {
-            fetch('/top_similar', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userInput: userInput }),
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    const answerBox = document.getElementById("answer-box");
-                    answerBox.innerHTML = ""; // Clear previous results
-                    data.forEach(row => {
-                        const tempDiv = document.createElement("div");
-                        tempDiv.innerHTML = answerBoxTemplate(row.Name, row.AuthorName, row.Description, row.RecipeInstructions, row.AggregatedRating);
-                        answerBox.appendChild(tempDiv);
-                    });
-                });
-        }
-
-        function answerBoxTemplate(name, authorName, description, recipeInstructions, aggregatedRating) {
+        function answerBoxTemplate(name, description, recipeInstructions, aggregatedRating, similarity) {
             return `<div class='recipe-container'>
                 <h3 class='recipe-name'>${name}</h3>
-                <p class='recipe-author'>Author: ${authorName}</p>
                 <p class='recipe-description'>${description}</p>
                 <p class='recipe-instructions'>Instructions: ${recipeInstructions}</p>
                 <p class='recipe-rating'>Rating: ${aggregatedRating}</p>
+                <p class='recipe-similarity'>Similarity: ${similarity.toFixed(2)}</p>
             </div>`;
         }
-
-        function sendFocus() {
-            document.getElementById('filter-text-val').focus();
-        }
     </script>
-
 </body>

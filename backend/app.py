@@ -1,122 +1,61 @@
-import json
 import os
-from flask import Flask, render_template, request, jsonify
+import json
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
-import pandas as pd
-from helpers.matrix import query_vector, top_ten, load_user_input_and_vector, name_ing_data, recipes_file, dish_id_ingr
-try:
-    # Try to perform relative import (when running as a package/module)
-    from helpers.cosineSimilarity import all_dish_cos_sim_matrix
-except ImportError:
-    # Fallback to modifying the sys.path to import (when running as a script)
-    import sys
-    import os
-    sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-    from cosineSimilarity import all_dish_cos_sim_matrix
-
-# ROOT_PATH for linking with all your files.
-# Feel free to use a config.py or settings.py with a global export variable
-os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..", os.curdir))
-
-# Get the directory of the current script
-current_directory = os.path.dirname(os.path.abspath(__file__))
-
-# Specify the path to the JSON file relative to the current script
-json_file_path = os.path.join(current_directory, 'init.json')
-
-# Assuming your JSON data is stored in a file named 'init.json'
-with open(json_file_path, 'r') as file:
-    data = json.load(file)
-    recipes_df = pd.DataFrame(data['recipes'])
-    reviews_df = pd.DataFrame(data['reviews'])
+import numpy as np
+from helpers.matrix import (
+    name_ing_data,
+    top_ten,
+    flavor_matrix
+)
 
 app = Flask(__name__)
 CORS(app)
 
-# Sample search using json with pandas
+base_dir = os.path.dirname(os.path.abspath(__file__))
+data_dir = os.path.join(base_dir, "data", "flavors")
 
+# Assuming 'matrix.py' provides these details
+from helpers.matrix import collect_flavor_profiles_from_directory, create_dict_from_directory, dish_id_ingr, recipes_file
+all_flavor_profiles = collect_flavor_profiles_from_directory(data_dir)
+json_dict = create_dict_from_directory(data_dir)
+name_ing_data = dish_id_ingr(recipes_file)
 
-def json_search(query):
-    merged_df = pd.merge(recipes_df, reviews_df,
-                         left_on='RecipeId', right_on='RecipeId', how='inner')
-    matches = merged_df[merged_df['Name'].str.lower(
-    ).str.contains(query.lower())]
-    matches_filtered = matches[[
-        'Name', 'AuthorName', 'Description', 'RecipeInstructions', 'AggregatedRating']]
-    matches_filtered_json = matches_filtered.to_json(orient='records')
-    return matches_filtered_json
-
+# Load the flavor matrix
+flavor_matrix_path = os.path.join(base_dir, "data", "flavors-matrix.npy")
+flavor_matrix = np.load(flavor_matrix_path)
 
 @app.route("/")
 def home():
-    return render_template('base.html', title="sample html")
+    return render_template('base.html')
 
+@app.route("/recipe_names", methods=["GET"])
+def recipe_names():
+    # Return all dish names as a list
+    return jsonify(name_ing_data[0])
 
-@app.route("/recipes")
-def recipes_search():
-    # Assume the query parameter is 'name' for recipe name
-    text = request.args.get("name")
-    return json_search(text)
-
-# This Flask endpoint receives the user input sent from the frontend and can process or store it
-
-
-@app.route('/store_user_input', methods=['POST'])
+@app.route("/store_user_input", methods=["POST"])
 def store_user_input():
-    data = request.json
-    userInput = data['userInput']
-    
-    # Process userInput or store it here:
-    # 1. Save userInput to a file
-    with open('input_vector.txt', 'w') as file:
-        file.write(str(userInput))
-
-    # 2. User userInput as input to method in other python script
-    # otherPythonMethod(userInput)
-    # (1) To use userInput in other python script:
-    # def process_user_input():
-    # with open('user_input.txt', 'r') as file:
-    #     userInput = file.read()
-
-    return jsonify({"status": "success", "userInput": userInput})
-
-@app.route("/top_similar", methods=["POST"])
-def top_similar():
-    data = request.json
-    user_input = data['userInput']
-    
-    # You need to ensure you have a method to generate a flavor profile vector from user_input
-    # For demonstration, let's say it returns a vector
-    user_input_vector = query_vector(user_input)
-
-    # Use the vector to find the top 10 similar dishes
-    top_dishes = top_ten(user_input, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
-
-    # Format the response
-    response = [{"Name": dish[1], "AuthorName": dish[2], "Description": dish[3], "RecipeInstructions": dish[4], "AggregatedRating": dish[5]} for dish in top_dishes]
-    
-    return jsonify(response)
-
+    # Store the selected recipe name in 'input_vector.txt'
+    user_input = request.json.get("userInput")
+    input_file_path = os.path.join(base_dir, "input_vector.txt")
+    with open(input_file_path, 'w') as file:
+        file.write(json.dumps(user_input))
+    return jsonify({"status": "success", "message": "User input stored"})
 
 @app.route("/get_similar_dishes", methods=["POST"])
 def get_similar_dishes():
-    data = request.json
-    selected_dish = data['selectedDish']
+    # Load the user input from 'input_vector.txt'
+    input_file_path = os.path.join(base_dir, "input_vector.txt")
+    with open(input_file_path, 'r') as file:
+        user_input = json.loads(file.read())
     
-    # Assume query_vector returns a flavor profile vector for the selected dish
-    # And top_ten returns the top 10 similar dishes based on cosine similarity
-    similar_dishes_info = top_ten(selected_dish, all_dish_cos_sim_matrix, name_ing_data[0], recipes_file)
-    
-    return jsonify(similar_dishes_info)
+    # Fetch similar dishes based on the stored user input
+    try:
+        final_output = top_ten(user_input, name_ing_data, flavor_matrix, recipes_file)
+        return jsonify(final_output)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-@app.route("/recipe_names")
-def get_recipe_names():
-    # Assuming dish_id_ingr returns a tuple and the first item is a list of recipe names
-    recipe_data = dish_id_ingr(recipes_file)
-    recipe_names = recipe_data[0]
-    return jsonify(recipe_names)
-
-
-if 'DB_NAME' not in os.environ:
-    app.run(debug=True, host="0.0.0.0", port=5000)
+if __name__ == "__main__":
+    app.run(debug=True)
