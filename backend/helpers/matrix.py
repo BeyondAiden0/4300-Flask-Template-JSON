@@ -155,10 +155,10 @@ def flavor_matrix_svd(ndishes, nflavors, name_ing_data, json_dict, all_flavor_pr
             val = flavors[flavor]
             matrix[row][ind] = val
         row += 1
-    #dish_latentflavors, importance, latentflavor_flavors_trans = svds(matrix, k = 500)
-    #np.save((os.path.join(base_dir, "data","dish-latent-flavors-matrix.npy")), dish_latentflavors)
-    #np.save((os.path.join(base_dir, "data","latent-flavors-flavors-matrix.npy")), latentflavor_flavors_trans.T)
-    return(matrix)
+    dish_latentflavors, importance, latentflavor_flavors_trans = svds(matrix, k = 500)
+    np.save((os.path.join(base_dir, "data","dish-latent-flavors-matrix.npy")), dish_latentflavors)
+    np.save((os.path.join(base_dir, "data","latent-flavors-flavors-matrix.npy")), latentflavor_flavors_trans.T)
+    np.save((os.path.join(base_dir, "data","flavors-matrix.npy")), matrix)
 
 
 """
@@ -185,29 +185,26 @@ respective name, ID, description, and recipe instructions.
 """
 #EDIT BASED ON TA FEEDBACK
 
-def top_ten(query_sim, name_ing_data, dish_latentflavors, recipes):
+def top_ten(query_sim, name_ing_data, matrix_comp, recipes):
     index = name_ing_data[0].index(query_sim.lower())
-    vect = dish_latentflavors[index,:]
-
-    laplace = np.copy(dish_latentflavors) + 1
-    pairs = np.size(laplace, 0)
-    totals = np.sum(dish_latentflavors, axis = 0) + pairs
-    smoothed = np.divide(laplace,totals)
+    vect = matrix_comp[index,:]
 
     dish_sim = []
-    for row in smoothed:
-        dish_sim.append(np.dot(vect, row) / (LA.norm(vect) * LA.norm(row)))
+    for row in matrix_comp:
+        if (LA.norm(vect) * LA.norm(row)) != 0:
+            dish_sim.append(np.dot(vect, row) / (LA.norm(vect) * LA.norm(row)))
+        else:
+            dish_sim.append(0)
     dish_cossim = np.array(dish_sim)
     top = np.argsort(dish_cossim)[-11:]
     ordered = top[::-1]
-    #final = np.delete(ordered, np.where(ordered == index))
-    #if np.size(final) != 10:
-        #final = final[:10]  
+    final = np.delete(ordered, np.where(ordered == index))
+    if np.size(final) != 10:
+        final = final[:10]  
     info = []
     with open(recipes, 'r', encoding='utf-8') as f:
         data = json.load(f)
-        #for indx in final:
-        for indx in ordered:
+        for indx in final:
             name = data[indx]["Name"]
             #id = data[indx]["RecipeId"]
             #desc = data[indx]["Description"]
@@ -235,7 +232,12 @@ ndishes = len(name_ing_data[0])
 nflavors = len(all_flavor_profiles)
 
 json_dict = create_dict_from_directory(data_dir)
-matrix = flavor_matrix_svd(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles)
+#matrix = flavor_matrix_svd(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles)
+
+# flavor matrix
+flavor_matrix_path = os.path.join(base_dir, "data", "flavors-matrix.npy")
+flavor_matrix = np.load(flavor_matrix_path)
+
 
 # U in SVD (dish against latent dimensions)
 dish_latentflavors_path = os.path.join(base_dir, "data", "dish-latent-flavors-matrix.npy")
@@ -243,14 +245,18 @@ dish_latentflavors = np.load(dish_latentflavors_path)
 
 userInput = load_user_input(filename='input_vector.txt')
 
-final_output1 = top_ten("pulled pork", name_ing_data, dish_latentflavors, recipes_file)
+"""
+final_output1 = top_ten("Pulled Pork", name_ing_data, dish_latentflavors, recipes_file)
 for result in final_output1:
     print(result)
+"""
 
 print("+++++++++++++++++++++++++")
 
-final_output = top_ten("pulled pork", name_ing_data, matrix, recipes_file)
+final_output = top_ten("pulled pork", name_ing_data, flavor_matrix, recipes_file)
 for result in final_output:
     print(result)
+
+
 
 
