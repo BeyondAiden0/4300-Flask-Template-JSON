@@ -8,7 +8,6 @@ import heapq
 import timeit
 
 
-
 def extract_names(json_data):
     """
     Extracts all 'Name' fields from a JSON object and returns them in a list
@@ -30,10 +29,22 @@ def extract_names(json_data):
     for recipe in data:  # add ['recipes'] after data if not using random-recipe.json
         # Add the name of the recipe to the list
         names.append(recipe['Name'])
-        
+
     return names
 
-def cossimNameMatch(user_input, vectorizer, tfidf_matrix, recipe_list):
+
+print(os.getcwd())
+
+with open('backend\\data\\random-recipe.json', 'r', encoding='utf-8') as f:
+    json_data = f.read()
+names = extract_names(json_data)
+
+# Pre-compute the vectorizer and the TF-IDF matrix
+vectorizer = TfidfVectorizer().fit(names)
+tfidf_matrix = vectorizer.transform(names)
+
+
+def cossimNameMatch(user_input, vectorizer=vectorizer, tfidf_matrix=tfidf_matrix, recipe_list=names):
     """
     Finds top 10 similar dish names within database using cosine similarity
 
@@ -67,19 +78,5 @@ def cossimNameMatch(user_input, vectorizer, tfidf_matrix, recipe_list):
 
     return top_10_similar
 
-print(os.getcwd())
 
-with open('backend\\data\\random-recipe.json', 'r', encoding='utf-8') as f:
-    json_data = f.read()
-    
-start = timeit.default_timer()
-names = extract_names(json_data)
-end = timeit.default_timer()
-
-print(end-start)
-# Pre-compute the vectorizer and the TF-IDF matrix
-vectorizer = TfidfVectorizer().fit(names)
-tfidf_matrix = vectorizer.transform(names)
-
-
-print(cossimNameMatch("pulled spork", vectorizer, tfidf_matrix, names))
+print(cossimNameMatch("pulled spork"))
