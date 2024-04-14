@@ -10,14 +10,24 @@ import time
 
 
 """
-Returns a dictionary of the format: {"ingredient-name":"json-file-name"} given a json 
-directory
-
-Relates each ingredient to the json file containing information on the ingredient 
+Creates a dictionary that maps ingredient names to their corresponding JSON file names 
+within a given directory. The JSON files contains information about the ingredient
 (flavor profiles, molecules, etc.)
 
-ex: {'egg': '0 Egg.json', 'bakery products': '1 Bakery Products.json',..}
+Parameters:
+    directory (str): A string representing the path to the directory containing JSON files.
+
+Returns:
+    dict: A dictionary where each key is a lowercase string representing the ingredient 
+    name, and each value is a string representing the corresponding JSON file name.
+
+Example:
+    Given a directory with the following files:
+        "0 Egg.json", "1 Bakery Products.json", "2 Egg.json"
+    The function will return:
+        {'egg': '2 Egg.json', 'bakery products': '1 Bakery Products.json'}
 """
+
 def create_dict_from_directory(directory):
     dict_files = {}
     for item in os.listdir(directory):
@@ -30,6 +40,29 @@ def create_dict_from_directory(directory):
 """
 Returns a set of all flavor profile listed within an ingredient's json file 
 """
+
+"""
+Extracts and returns a set of all unique flavor profiles listed within an ingredient's JSON file.
+
+Parameters:
+    json_file (str): A string representing the path to the JSON file containing information about 
+    an ingredient.
+
+Returns:
+    set: A set of strings, each representing a unique flavor profile associated with the ingredient.
+
+Example:
+    Given a JSON file with the following content:
+    {
+        "molecules": [
+            {"name": "Molecule1", "flavor_profile": "sweet@fruity"},
+            {"name": "Molecule2", "flavor_profile": "bitter"}
+        ]
+    }
+    The function will return:
+        {'sweet', 'fruity', 'bitter'}
+"""
+
 def get_flavor_profiles(json_file):
     flavor_profiles = set()
     with open(json_file, 'r') as f:
@@ -42,9 +75,20 @@ def get_flavor_profiles(json_file):
 
 
 """
-Returns a set of all unique flavors within the directory/dataset
-Determines the unique flavors from all the ingredients within the dataset
+Aggregates a set of all unique flavor profiles found within JSON files in a specified directory. 
+This function compiles the unique flavors from all ingredients listed in the dataset.
+
+Parameters:
+    directory (str): A string representing the path to the directory containing JSON files with ingredient data.
+
+Returns:
+    list: A sorted list of unique flavor profile strings extracted from all JSON files in the directory.
+
+Example:
+    Given a directory with JSON files named '0 Egg.json', '1 Milk.json', etc., where each file contains flavor 
+    profile data, the function will return a sorted list of all unique flavor profiles found in these files.
 """
+
 def collect_flavor_profiles_from_directory(directory):
     all_flavor_profiles = set()
     for item in os.listdir(directory):
@@ -56,9 +100,28 @@ def collect_flavor_profiles_from_directory(directory):
 
 
 """
-Returns a dictionary of the format {flavor_name: flavor_occurence} given an
-ingredient's json file
+Analyzes an ingredient's JSON file to count the occurrences of each flavor profile keyword 
+and returns a dictionary sorted by frequency in descending order.
+
+Parameters:
+    json_file (str): The path to the JSON file containing data about an ingredient.
+
+Returns:
+    dict: A dictionary where each key is a flavor profile keyword (str) and each value is 
+    the occurrence count (int) of that keyword.
+
+Example:
+    Given a JSON file with the following content:
+    {
+        "molecules": [
+            {"name": "Molecule1", "flavor_profile": "sweet@fruity"},
+            {"name": "Molecule2", "flavor_profile": "sweet@bitter"}
+        ]
+    }
+    The function will return:
+        {'sweet': 2, 'fruity': 1, 'bitter': 1}
 """
+
 def extract_keywords(json_file):
     keyword_counts = {}
     with open(json_file, 'r') as f:
@@ -76,9 +139,24 @@ def extract_keywords(json_file):
 
 
 """
-Returns a dictionary of the format {flavor_name: flavor_occurence} given a 
-list of ingredient's json files
+Aggregates the flavor profile keyword occurrences from a list of JSON files 
+representing different ingredients. It returns a dictionary sorted by the 
+frequency of each flavor name in descending order.
+
+Parameters:
+    json_files (list of str): A list of strings where each string is the filename 
+    of a JSON file containing ingredient data.
+
+Returns:
+    dict: A dictionary where each key is a flavor profile keyword (str) and each value 
+    is the total occurrence count (int) of that keyword across all provided JSON files.
+
+Example:
+    Given a list of JSON filenames ['0 Egg.json', '1 Milk.json'], the function will return a 
+    dictionary with the total occurrence count of each flavor profile keyword found in these 
+    files, sorted by frequency.
 """
+
 def merge_counts(json_files):
     merged_keyword_counts = Counter()
     for json_file in json_files:
@@ -91,19 +169,24 @@ def merge_counts(json_files):
 
 
 """
-Returns a dictionary of the format {flavor_name: flavor_occurence} such that the size/
-number of items in the dictionary is equal to the total number of unique flavors 
+Parameters:
+    dict_X (dict): A dictionary representing the flavor profile of a single dish, where keys 
+    are flavor names (str) and values are occurrence counts (int).
+    
+    all_flavor_profiles (list of str): A list of all unique flavor names across the dataset.
 
-dict_x is a dictionary of the format {flavor_name: flavor_occurence} for a 
-single dish such that the size/number of items in the dictionary may differ
-from that another dish since not all flavors may have been accounted/detected
+Returns:
+    dict: A standardized dictionary where each key is a flavor name (str) from the total set 
+    of unique flavors, and each value is the occurrence count (int) of that flavor in the dish's 
+    flavor profile.
 
-This function standardizes the size of the dictionaries used to represent each dish's
-flavor profile (equal to the total number of unique flavors).
-
-The values of the dictionary is the 'flavor vector' of the dish. (Each value 
-represents the occurrence of the respective flavor in the dish's flavor profile)
+Example:
+    Given 
+        `dict_X` as {'sweet': 2, 'bitter': 1} and 
+        `all_flavor_profiles` as ['sweet', 'bitter', 'sour', 'salty'],
+    the function will return {'sweet': 2, 'bitter': 1, 'sour': 0, 'salty': 0}.
 """
+
 def compare_dict_with_flavor_profiles(dict_X, all_flavor_profiles):
     flavor_profile_counts = dict.fromkeys(all_flavor_profiles, 0)
     for key, value in dict_X.items():
@@ -113,14 +196,30 @@ def compare_dict_with_flavor_profiles(dict_X, all_flavor_profiles):
 
 
 """
-Returns a tuple of the format (dish_name, dish_id, ingredients), each of which is a list
-given a recipes file (containing multiple recipes)
+Extracts and returns a tuple containing three lists: dish names, dish IDs, and ingredients, 
+from a given recipes file. Each list corresponds to the respective attribute of the recipes 
+contained in the file.
 
-For each list in the tuple (dish_name, dish_id, and ingredients), the items with the same 
-index are from the same recipe 
+Parameters:
+    recipes (str): A string representing the path to the JSON file containing multiple recipes.
 
-ex: dish_name[0] has an id of dish_id[0] with ingredients ingredients[0]
+Returns:
+    tuple: A tuple containing three lists:
+        - The first list contains dish names (str), all converted to lowercase.
+        - The second list contains dish IDs (int).
+        - The third list contains lists of ingredients (list of str), where each 
+        sublist corresponds to the ingredients of a single recipe.
+
+Example:
+    Given a recipes file with the following content:
+    [
+        {"Name": "Omelette", "RecipeId": 123, "RecipeIngredientParts": "\"Eggs\" \"Milk\" \"Salt\""},
+        {"Name": "Pancakes", "RecipeId": 456, "RecipeIngredientParts": "\"Flour\" \"Eggs\" \"Milk\""}
+    ]
+    The function will return:
+        (['omelette', 'pancakes'], [123, 456], [['eggs', 'milk', 'salt'], ['flour', 'eggs', 'milk']])
 """
+
 def dish_id_ingr(recipes):
     id = []
     ingr = []
@@ -136,11 +235,26 @@ def dish_id_ingr(recipes):
 
 
 """
-Saves the matrix of all the dishes against the latent dimensions (flavors) 
-[dish_latentflavors] and the matrix of the all the flavors against 
-the latent dimensions (flavors) [latentflavor_flavors_trans.T] generated by 
-apply SVD on the matrix of all dishes against all the flavors
+Constructs a matrix representing the flavor profiles of dishes and applies Singular Value 
+Decomposition (SVD) to this matrix. It saves three matrices: the matrix of dishes against 
+latent flavor dimensions (U), the transposed matrix of latent flavor dimensions against 
+flavors (V), and the original flavor profile matrix.
+
+Parameters:
+    ndishes (int): The number of dishes, which determines the number of rows in the matrix.
+
+    nflavors (int): The number of unique flavors, which determines the number of columns in the matrix.
+
+    name_ing_data (tuple): A tuple containing lists of dish names, dish IDs, and ingredient lists.
+
+    json_dict (dict): A dictionary mapping ingredient names to their flavor occurrence dictionaries.
+
+    all_flavor_profiles (list of str): A list of all unique flavor names across the dataset.
+
+Example:
+    Given the number of dishes and flavors, along with the appropriate `name_ing_data`, `json_dict`, and `all_flavor_profiles`, the function will construct the flavor profile matrix, apply SVD, and save the resulting matrices to disk.
 """
+
 def flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles):
     matrix = np.zeros((ndishes, nflavors), dtype=float)
     row = 0
@@ -162,27 +276,55 @@ def flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profil
 
 
 """
-Returns the stored user's inputted dish along with the dish's 'flavor vector.'
+Retrieves the user's selected dish name from a stored file named 'input_vector.txt'. 
 
-The stored user's input refers the the user's final selection of a dish from the drop 
-down menu. To ensure that the user's input is within our dataset, we have the user  
-select a dish from a drop down menu. The dishes listed in the drop down menu will be
-order based on edit distance where most similar dish to the user's original input is 
-listed first.
+Parameters:
+    filename (str, optional): The name of the file containing the user's selected dish name. 
+    Defaults to 'input_vector.txt'.
+
+Returns:
+    str: The name of the dish selected by the user.
+
+Example:
+    If the file 'input_vector.txt' contains the following content:
+    "Spaghetti Carbonara"
+    The function will return:
+    "Spaghetti Carbonara"
 """
+
 def load_user_input(filename='input_vector.txt'):
     os.chdir("backend")
     with open(filename, 'r') as file:
         content = file.read()
-        input_tuple = ast.literal_eval(content)
-    user_input_string = input_tuple[0]
+        input = ast.literal_eval(content)
+    user_input_string = input
     return user_input_string
 
 
 """
-Returns the top ten most similar dish to the user's input, along with their 
-respective name, ID, description, and recipe instructions. 
+Identifies the top ten dishes most similar to the user's input based on cosine similarity 
+and returns detailed information about these dishes, including their names, similarity scores,
+IDs, descriptions, and recipe instructions.
+
+Parameters:
+    query_sim (str): The name of the dish similar to that which was inputted by the user.
+
+    name_ing_data (tuple): A tuple containing lists of dish names, dish IDs, and ingredient lists.
+
+    matrix_comp (numpy.ndarray): The matrix containing the flavor vectors that represents each dish.
+
+    recipes (str): The path to the JSON file containing the recipes data.
+
+Returns:
+    list: A list of lists, where each inner list contains the name, cosine similarity score, ID, 
+    description, and recipe instructions of a similar dish.
+
+Example:
+    Given a user's input dish name, the corresponding lists of dish names and IDs, a 
+    matrix of flavor vectors, and a path to the recipes file, the function will return detailed 
+    information for the top ten most similar dishes.
 """
+
 def top_ten(query_sim, name_ing_data, matrix_comp, recipes):
     index = name_ing_data[0].index(query_sim.lower())
     vect = matrix_comp[index,:]

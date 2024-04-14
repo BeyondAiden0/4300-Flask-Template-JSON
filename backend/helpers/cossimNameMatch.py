@@ -3,9 +3,7 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import json
-import cProfile
 import heapq
-import timeit
 
 
 def extract_names(json_data):
