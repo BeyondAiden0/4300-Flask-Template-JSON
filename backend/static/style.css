@@ -34,6 +34,7 @@ h1 {
     font-size: 5em;
     font: bold 7.5vw/1.6 'Signika', sans-serif;
     user-select: none;
+    margin-bottom: 10px; 
 }
 
 h1 span {
@@ -151,14 +152,14 @@ h1 span:nth-child(14) {
 
 .input-box {
     position: relative;
-    /* Ensures dropdown is positioned relative to this container */
     border-radius: 50px;
     border: 1px solid black;
     display: flex;
     align-items: center;
     margin-top: 10px;
     padding: 12px;
-    width: 600px;
+    width: 700px;
+    background: rgba(255, 255, 255, 0.5); /* Slight transparency on the entire box */
 }
 
 .input-box img {
@@ -178,37 +179,28 @@ h1 span:nth-child(14) {
     font-size: 16px;
     border: none;
     outline: none;
+    background-color: transparent; /* Make background transparent */
 }
 
-#answer-box {
-    width: 700px;
+/* #answer-box {
+    width: 1300px;
     margin-top: 50px;
     overflow-y: auto;
-}
-
-/* .episode-title {
-    font-family: 'Kanit', sans-serif;
-}
-
-.episode-desc {
-    font-family: 'Montserrat', sans-serif;
 } */
 
-/* .dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #f9f9f9;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-    z-index: 1;
+#answer-box {
+    width: 100%; /* Adjusted to full width of its container */
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 cards per row */
+    grid-gap: 20px; /* Space between cards */
+    padding: 10px; /* Padding around the grid */
+    margin-top: 40px; /* Margin top for spacing */
+    max-width: 1600px; /* Limit the maximum width */
+    margin-left: auto; /* Centering the grid */
+    margin-right: auto; /* Centering the grid */
+    margin-bottom: 40px; /* Added bottom margin for space below the box */
+    overflow: auto; /* Enable scrolling */
 }
-
-.dropdown-content div {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-} */
 
 #dropdown {
     display: none;
@@ -240,4 +232,87 @@ h1 span:nth-child(14) {
 /* Consider adding hover styles for dropdown items */
 #dropdown div:hover {
     background-color: #ddd;
+}
+
+
+/* Basic grid layout for recipe cards */
+.full-body-container .recipe-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* Style for individual cards */
+.recipe-card {
+    background-color: rgb(245, 245, 240); /* Slight grey background */
+    border: 1px solid #ccc; /* Light grey border */
+    border-radius: 5px;
+    padding: 8px; /* Adjust padding to fit content in a smaller area */
+    height: 250px; /* Adjusted height */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Space content evenly */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Soft shadow for depth */
+    cursor: pointer; /* Pointer cursor for interaction */
+}
+
+/* Enhancements to the recipe card text to avoid overflow */
+.recipe-card h3, .recipe-card p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Style for the pop-up detailed view */
+.full-body-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Style adjustments for detail popup to make it more integrated */
+.recipe-detail-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 70%;
+    height: 70%;
+    transform: translate(-50%, -50%);
+    background-color: rgb(250, 250, 240);
+    border: 1px solid black;
+    border-radius: 10px;
+    padding: 20px;
+    z-index: 1000; /* Ensure it's on top */
+    display: none; /* Hide by default */
+    overflow-y: auto; /* Enable scroll if content is too long */
+    text-align: left; /* Ensure all text aligns to the left */
+}
+
+/* Specific styling for the recipe title in the popup */
+.recipe-detail-popup h2 {
+    text-align: center; /* Center-align the recipe title */
+    margin-bottom: 50px; /* Add space below the title */
+}
+
+/* Styling individual paragraphs in the popup for better spacing */
+.recipe-detail-popup p {
+    margin-bottom: 15px; /* Add more space between each data field */
+    margin-left: 40px
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 24px;
 }
