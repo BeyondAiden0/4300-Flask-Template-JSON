@@ -169,6 +169,8 @@ def merge_counts(json_files):
 
 
 """
+Standardizes a dish's flavor profile by ensuring all possible flavors are represented.
+
 Parameters:
     dict_X (dict): A dictionary representing the flavor profile of a single dish, where keys 
     are flavor names (str) and values are occurrence counts (int).
@@ -236,9 +238,8 @@ def dish_id_ingr(recipes):
 
 """
 Constructs a matrix representing the flavor profiles of dishes and applies Singular Value 
-Decomposition (SVD) to this matrix. It saves three matrices: the matrix of dishes against 
-latent flavor dimensions (U), the transposed matrix of latent flavor dimensions against 
-flavors (V), and the original flavor profile matrix.
+Decomposition (SVD) to this matrix. It saves the matrix of dishes against latent flavor 
+dimensions (U)
 
 Parameters:
     ndishes (int): The number of dishes, which determines the number of rows in the matrix.
@@ -252,7 +253,9 @@ Parameters:
     all_flavor_profiles (list of str): A list of all unique flavor names across the dataset.
 
 Example:
-    Given the number of dishes and flavors, along with the appropriate `name_ing_data`, `json_dict`, and `all_flavor_profiles`, the function will construct the flavor profile matrix, apply SVD, and save the resulting matrices to disk.
+    Given the number of dishes and flavors, along with the appropriate `name_ing_data`, `json_dict`, and 
+    `all_flavor_profiles`, the function will construct the flavor profile matrix, apply SVD, and save the 
+    resulting matrices to disk.
 """
 
 def flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles):
@@ -269,10 +272,9 @@ def flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profil
             val = flavors[flavor]
             matrix[row][ind] = val
         row += 1
-    dish_latentflavors, importance, latentflavor_flavors_trans = svds(matrix, k = 500)
+    dish_latentflavors, importance, latentflavor_flavors_trans = svds(matrix, k = 15)
     np.save((os.path.join(base_dir, "data","dish-latent-flavors-matrix.npy")), dish_latentflavors)
-    np.save((os.path.join(base_dir, "data","latent-flavors-flavors-matrix.npy")), latentflavor_flavors_trans.T)
-    np.save((os.path.join(base_dir, "data","flavors-matrix.npy")), matrix)
+    #np.save((os.path.join(base_dir, "data","flavors-matrix.npy")), matrix)
 
 
 """
@@ -344,7 +346,8 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes):
     info = []
     with open(recipes, 'r', encoding='utf-8') as f:
         data = json.load(f)
-        for indx in final:
+        #for indx in final:
+        for indx in ordered:
             name = data[indx]["Name"]
             id = data[indx]["RecipeId"]
             desc = data[indx]["Description"]
@@ -356,12 +359,13 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes):
 
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_dir = os.path.join(base_dir, "data", "flavors")
-recipes_file = os.path.join(base_dir, "data", "reduced-recipe.json")
+recipes_file = os.path.join(base_dir, "data", "random-recipe.json")
 
 # Collect all unique flavor profiles from JSONs in the current directory
 all_flavor_profiles = collect_flavor_profiles_from_directory(data_dir)
 
 # Contains (dish_name, dish_id, ingredients)
+
 name_ing_data = dish_id_ingr(recipes_file)
 
 # Total Number of Dishes
@@ -377,23 +381,8 @@ json_dict = create_dict_from_directory(data_dir)
 flavor_matrix_path = os.path.join(base_dir, "data", "flavors-matrix.npy")
 flavor_matrix = np.load(flavor_matrix_path)
 
-"""
 #U in SVD (dish against latent dimensions)
-
 dish_latentflavors_path = os.path.join(base_dir, "data", "dish-latent-flavors-matrix.npy")
 dish_latentflavors = np.load(dish_latentflavors_path)
 
 final_output1 = top_ten("Pulled Pork", name_ing_data, dish_latentflavors, recipes_file)
-for result in final_output1:
-    print(result)
-"""
-
-start_time = time.perf_counter()
-final_output = top_ten("pulled pork", name_ing_data, flavor_matrix, recipes_file)
-for result in final_output:
-    print(result)
-end_time = time.perf_counter()
-
-duration = end_time - start_time
-print(f"The function took {duration} seconds to run.")
-

@@ -97,7 +97,7 @@ def rerank_review(ranked_orig, linked_data):
     """
     weighted = []
     for recipe in ranked_orig:
-        recipe_id = recipe[1]  # second element in the list is the RecipeId?
+        recipe_id = recipe[2] 
         if recipe_id in linked_data:
             weight = linked_data[recipe_id]['weight']
             cosine_similarity = recipe[1]
