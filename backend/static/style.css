@@ -15,9 +15,9 @@
 }
 
 /* ------------------------ Happy Shaking Text -----------------------------*/
-html,
-body {
+html, body {
     height: 100%;
+    min-height: 100%;
 }
 
 body {
@@ -236,7 +236,21 @@ h1 span:nth-child(14) {
 
 
 /* Basic grid layout for recipe cards */
-.full-body-container .recipe-container {
+.full-body-container {
+    position: relative; /* Changed from absolute to relative */
+    width: 100%;
+    max-width: 1600px; /* Limit the maximum width to 1200px or another suitable value */
+    height: auto; /* Height automatically adjusts to content */
+    margin: 0 auto; /* Center align the container */
+    padding: 20px; /* Add some padding around the edges */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Optional: adds shadow for better framing */
+}
+
+.recipe-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;

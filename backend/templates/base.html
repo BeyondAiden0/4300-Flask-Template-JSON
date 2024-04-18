@@ -103,7 +103,7 @@
                     <p>${truncate(dish[3], 80)}</p>
                     <p>Instructions: ${truncate(dish[4], 100)}</p>
                     <p>Rating: ${dish[2]}</p>
-                    <p>Similarity: ${dish[1].toFixed(2)}</p>
+                    <p>Similarity: ${dish[1].toFixed(5)}</p>
                 `;
                 card.onclick = () => showRecipeDetail(dish);
                 answerBox.appendChild(card);
