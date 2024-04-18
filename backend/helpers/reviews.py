@@ -1,6 +1,7 @@
 import json
-import csv
 from collections import defaultdict
+#import matrix
+#import unittest
 
 #Step 1: link all recipeids from random-recipe to average reviews; returns a dict
 
@@ -10,11 +11,11 @@ def construct_reviews(recipe_data, review_data):
 
     Arguments
     ========
-        recipe_data: JSON of recipes that need a corresponding average review score
-        review_data: review data in a CSV
+        recipe_data (str): The path to the JSON file containing the recipes data.
+        review_data (str): The path to the JSON file containing the review data.
 
     Returns:
-        big_dict: Dict of RecipeId:average review score format
+        big_dict: Dict of dict in RecipeId:{average review score, number of reviews} format
     """
     # load recipe data from JSON
     #recipes = json.loads(recipe_data)
@@ -26,12 +27,12 @@ def construct_reviews(recipe_data, review_data):
     # init a default dict to hold sum and count of ratings for each RecipeId
     ratings_dict = defaultdict(lambda: {'sum': 0, 'count': 0})
     
-    # read review data from CSV and aggregate ratings
-    with open(review_data, newline='', encoding='utf-8', errors='replace') as csvfile:
-        reader = csv.DictReader(csvfile, delimiter=',')
-        for row in reader:
-            recipe_id = int(row['RecipeId'])
-            rating = float(row['Rating'])
+    # read review data from json and aggregate ratings
+    with open(review_data, 'r', encoding='utf-8') as jsonfile:
+        reviews = json.load(jsonfile)
+        for review in reviews.values():
+            recipe_id = int(review['RecipeId'])
+            rating = float(review['Rating'])
             ratings_dict[recipe_id]['sum'] += rating
             ratings_dict[recipe_id]['count'] += 1
     
@@ -47,8 +48,20 @@ def construct_reviews(recipe_data, review_data):
     
     return big_dict
 
+    
+
 #ditct = construct_reviews('backend\\data\\random-recipe.json','C:\\Users\\Kevin\\Documents\\CS4300\\finalproj\\jsonstorage\\rev.csv')
+ditct = construct_reviews('backend\\data\\random-recipe.json','backend\\data\\reviews.json')
 #print(ditct)
+
+#def checkEqual(L1, L2):
+    #return len(L1) == len(L2) and sorted(L1) == sorted(L2)
+
+#print(len(list(ditct.keys())))
+#print(len(matrix.name_ing_data[1]))
+#print(checkEqual(list(ditct.keys()), matrix.name_ing_data[1]))
+#print(ditct.keys())
+#print(matrix.name_ing_data[1])
 
 #Step 2: figure out some weighting system for the reviews, update the dict values to that weighing
 
@@ -61,7 +74,7 @@ def weigh_reviews(linked_data):
         linked_data: dict of recipes from construct_reviews() that have their respective average review rating as values
 
     Returns:
-        another_big_dict: Dict of RecipeId:weighting format
+        another_big_dict: Dict of dict in RecipeId:{average rating, review count, weight} format
     """
     #some method of weighing reviews. maybe use 3 stars as 1.0? and closer we go to 5 stars the closer we get to 1.5.
     #and closer we go to 1, we go closer to 0.5 weighting. What should we do about 0 stars? I think just a set value of 0.25.
