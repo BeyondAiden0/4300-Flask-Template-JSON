@@ -1,6 +1,7 @@
+import ast
+import os
 import json
 from collections import defaultdict
-#import matrix
 #import unittest
 
 #Step 1: link all recipeids from random-recipe to average reviews; returns a dict
@@ -55,7 +56,7 @@ ditct = construct_reviews('backend\\data\\random-recipe.json','backend\\data\\re
 #print(ditct)
 
 #def checkEqual(L1, L2):
-    #return len(L1) == len(L2) and sorted(L1) == sorted(L2)
+#    return len(L1) == len(L2) and sorted(L1) == sorted(L2)
 
 #print(len(list(ditct.keys())))
 #print(len(matrix.name_ing_data[1]))
@@ -91,10 +92,37 @@ def weigh_reviews(linked_data):
     
     return another_big_dict
 
-#weighgedede = weigh_reviews(ditct)
-#print(weighgedede)
+weighgedede = weigh_reviews(ditct)
+print(weighgedede)
 
 #Step 3: given a ranked list of recipes, apply our weighting of reviews onto it
+
+def rerank(id_rating_dict, id_ordered):
+    rating_count_weight = []
+    rating = []
+    count = []
+    weight = []
+    for indx in id_ordered:
+        rating.append(id_rating_dict[indx]["average_rating"])
+        count.append(id_rating_dict[indx]["review_count"])
+        weight.append(id_rating_dict[indx]["weight"])
+    rating_count_weight.append(rating)
+    rating_count_weight.append(count)
+    rating_count_weight.append(weight)
+    return(rating_count_weight)
+
+os.chdir("backend")
+os.chdir("data")
+with open("dish_id_ingr.txt", 'r') as file:
+    content = file.read()
+    input = ast.literal_eval(content)
+name_ing_data = input
+rating_count_weight = rerank(weighgedede,name_ing_data[1])
+
+id = name_ing_data[1].index(184953)
+print(name_ing_data[0][id])
+print(name_ing_data[1][id])
+print(weighgedede[184953])
 
 def rerank_review(ranked_orig, linked_data):
     """

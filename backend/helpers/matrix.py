@@ -6,7 +6,7 @@ import numpy as np
 import ast
 from scipy.sparse.linalg import svds
 from numpy import linalg as LA
-import time
+from reviews import rating_count_weight
 
 
 """
@@ -222,7 +222,7 @@ Example:
         (['omelette', 'pancakes'], [123, 456], [['eggs', 'milk', 'salt'], ['flour', 'eggs', 'milk']])
 """
 
-def dish_id_ingr(recipes):
+def dish_id_ingr(recipes, base_dir):
     id = []
     ingr = []
     dishes = []
@@ -233,8 +233,10 @@ def dish_id_ingr(recipes):
             id.append(dish["RecipeId"])
             ingr.append(
                 ((re.findall(r'"(.*?)"', dish["RecipeIngredientParts"].casefold()))))
-    return (dishes, id, ingr)
-
+    info = (dishes, id, ingr)
+    input_file_path = os.path.join(base_dir,"data", "dish_id_ingr.txt")
+    with open(input_file_path, 'w') as file:
+        file.write(json.dumps(info))
 
 """
 Constructs a matrix representing the flavor profiles of dishes and applies Singular Value 
@@ -295,7 +297,6 @@ Example:
 """
 
 def load_user_input(filename='input_vector.txt'):
-    os.chdir("backend")
     with open(filename, 'r') as file:
         content = file.read()
         input = ast.literal_eval(content)
@@ -327,16 +328,20 @@ Example:
     information for the top ten most similar dishes.
 """
 
-def top_ten(query_sim, name_ing_data, matrix_comp, recipes):
+def top_ten(query_sim, name_ing_data, matrix_comp, recipes,rating_count_weight):
     index = name_ing_data[0].index(query_sim.lower())
     vect = matrix_comp[index,:]
 
     dish_sim = []
-    for row in matrix_comp:
+    cos_sim = []
+    for row,weight in zip(matrix_comp,rating_count_weight[2]):
         if (LA.norm(vect) * LA.norm(row)) != 0:
-            dish_sim.append(np.dot(vect, row) / (LA.norm(vect) * LA.norm(row)))
+            cos = np.dot(vect, row) / (LA.norm(vect) * LA.norm(row))
+            cos_sim.append(cos)
+            dish_sim.append(weight*cos)
         else:
             dish_sim.append(0)
+            cos_sim.append(0)
     dish_cossim = np.array(dish_sim)
     top = np.argsort(dish_cossim)[-11:]
     ordered = top[::-1]
@@ -344,15 +349,22 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes):
     if np.size(final) != 10:
         final = final[:10]  
     info = []
+    cos_scores = np.array(cos_sim)
+    top1 = np.argsort(cos_scores)[-11:]
+    ordered1 = top1[::-1]
+    final1 = np.delete(ordered1, np.where(ordered1 == index))
+    if np.size(final1) != 10:
+        final1 = final1[:10]
     with open(recipes, 'r', encoding='utf-8') as f:
         data = json.load(f)
-        #for indx in final:
-        for indx in ordered:
+        for indx in final:
             name = data[indx]["Name"]
             id = data[indx]["RecipeId"]
             desc = data[indx]["Description"]
             recipe = data[indx]["RecipeInstructions"]
-            info.append([name, dish_sim[indx], id, desc, recipe])
+            rating = rating_count_weight[0][indx]
+            count = rating_count_weight[1][indx]
+            info.append([name, cos_sim[indx], dish_sim[indx], id, desc, recipe, rating, count])
     return(info)
 
 #######################################################################################
@@ -361,12 +373,10 @@ base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_dir = os.path.join(base_dir, "data", "flavors")
 recipes_file = os.path.join(base_dir, "data", "random-recipe.json")
 
+"""
+Testing Purposes:
 # Collect all unique flavor profiles from JSONs in the current directory
 all_flavor_profiles = collect_flavor_profiles_from_directory(data_dir)
-
-# Contains (dish_name, dish_id, ingredients)
-
-name_ing_data = dish_id_ingr(recipes_file)
 
 # Total Number of Dishes
 ndishes = len(name_ing_data[0])
@@ -376,13 +386,25 @@ nflavors = len(all_flavor_profiles)
 
 json_dict = create_dict_from_directory(data_dir)
 #matrix = flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles)
-
-# flavor matrix
-flavor_matrix_path = os.path.join(base_dir, "data", "flavors-matrix.npy")
-flavor_matrix = np.load(flavor_matrix_path)
+"""
+# Contains (dish_name, dish_id, ingredients)
+dish_id_ingr(recipes_file, base_dir)
+name_ing_data = load_user_input("dish_id_ingr.txt")
 
 #U in SVD (dish against latent dimensions)
 dish_latentflavors_path = os.path.join(base_dir, "data", "dish-latent-flavors-matrix.npy")
 dish_latentflavors = np.load(dish_latentflavors_path)
 
-final_output1 = top_ten("Pulled Pork", name_ing_data, dish_latentflavors, recipes_file)
+final_output1 = top_ten("Pulled Pork", name_ing_data, dish_latentflavors, recipes_file, rating_count_weight)
+
+
+for each in final_output1:
+    print("name ", each[0])
+    print("id ", each[3])
+    print("cosine "  , each[1])
+    print("ranking " , each[2])
+    print("rating " , each[6])
+    print("count ", each[7])
+    print("++++++++++++")
+
+
