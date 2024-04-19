@@ -2,7 +2,6 @@ import ast
 import os
 import json
 from collections import defaultdict
-#import unittest
 
 #Step 1: link all recipeids from random-recipe to average reviews; returns a dict
 
@@ -49,9 +48,6 @@ def construct_reviews(recipe_data, review_data):
     
     return big_dict
 
-    
-
-#ditct = construct_reviews('backend\\data\\random-recipe.json','C:\\Users\\Kevin\\Documents\\CS4300\\finalproj\\jsonstorage\\rev.csv')
 ditct = construct_reviews('backend\\data\\random-recipe.json','backend\\data\\reviews.json')
 #print(ditct)
 
