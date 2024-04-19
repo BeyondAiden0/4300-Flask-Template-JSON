@@ -3,6 +3,14 @@ import os
 import json
 from collections import defaultdict
 
+########## PATHS ##########
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+# Construct the paths to the data files
+recipe_path = os.path.normpath(os.path.join(current_script_dir, '..', 'data', 'random-recipe.json'))
+reviews_path = os.path.normpath(os.path.join(current_script_dir, '..', 'data', 'reviews.json'))
+dish_id_ingr_path = os.path.normpath(os.path.join(current_script_dir, '..', 'data', 'dish_id_ingr.txt'))
+
 def better_reviews(recipe_data):
     """
     Links all 'RecipeId's from a JSON object to their corresponding averaged reviews, then
@@ -39,7 +47,7 @@ def better_reviews(recipe_data):
 
     return final_dict
 
-testweight = better_reviews('backend\\data\\random-recipe.json')
+testweight = better_reviews(recipe_path)
 print(testweight)
 
 #Step 1: link all recipeids from random-recipe to average reviews; returns a dict
@@ -149,9 +157,8 @@ def rerank(id_rating_dict, id_ordered):
     rating_count_weight.append(weight)
     return(rating_count_weight)
 
-os.chdir("backend")
-os.chdir("data")
-with open("dish_id_ingr.txt", 'r') as file:
+
+with open(dish_id_ingr_path, 'r') as file:
     content = file.read()
     input = ast.literal_eval(content)
 name_ing_data = input

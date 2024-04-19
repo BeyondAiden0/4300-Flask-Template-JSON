@@ -6,7 +6,7 @@ import numpy as np
 import ast
 from scipy.sparse.linalg import svds
 from numpy import linalg as LA
-from reviews import rating_count_weight
+from .reviews import rating_count_weight
 
 
 """
