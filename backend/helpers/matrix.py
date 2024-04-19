@@ -198,7 +198,7 @@ def compare_dict_with_flavor_profiles(dict_X, all_flavor_profiles):
 
 
 """
-Extracts and returns a tuple containing three lists: dish names, dish IDs, and ingredients, 
+Saves a text file containing a tuple containing three lists: dish names, dish IDs, and ingredients, 
 from a given recipes file. Each list corresponds to the respective attribute of the recipes 
 contained in the file.
 
@@ -280,7 +280,7 @@ def flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profil
 
 
 """
-Retrieves the user's selected dish name from a stored file named 'input_vector.txt'. 
+Retrieves the user's selected dish name from a stored file
 
 Parameters:
     filename (str, optional): The name of the file containing the user's selected dish name. 
@@ -296,7 +296,7 @@ Example:
     "Spaghetti Carbonara"
 """
 
-def load_user_input(filename='input_vector.txt'):
+def load_user_input(filename):
     with open(filename, 'r') as file:
         content = file.read()
         input = ast.literal_eval(content)
@@ -305,9 +305,10 @@ def load_user_input(filename='input_vector.txt'):
 
 
 """
-Identifies the top ten dishes most similar to the user's input based on cosine similarity 
-and returns detailed information about these dishes, including their names, similarity scores,
-IDs, descriptions, and recipe instructions.
+Identifies and returns the top ten dishes most similar to the user's input based on cosine similarity 
+and returns detailed information about these dishes, including their names, cosine similarity
+scores, ranking scores (cosine similarity score weighted by rating), IDs, descriptions, recipes, 
+ratings (1-5) and rating counts
 
 Parameters:
     query_sim (str): The name of the dish similar to that which was inputted by the user.
