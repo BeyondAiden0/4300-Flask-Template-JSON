@@ -3,13 +3,15 @@ import os
 import json
 from collections import defaultdict
 
-########## PATHS ##########
 current_script_dir = os.path.dirname(os.path.abspath(__file__))
     
 # Construct the paths to the data files
 recipe_path = os.path.normpath(os.path.join(current_script_dir, '..', 'data', 'random-recipe.json'))
 reviews_path = os.path.normpath(os.path.join(current_script_dir, '..', 'data', 'reviews.json'))
 dish_id_ingr_path = os.path.normpath(os.path.join(current_script_dir, '..', 'data', 'dish_id_ingr.txt'))
+
+
+#Step 1: link all recipeids from random-recipe to average reviews; returns a dict
 
 def better_reviews(recipe_data):
     """
@@ -35,22 +37,28 @@ def better_reviews(recipe_data):
             else:
                 rating = review['AggregatedRating']
                 count = review['ReviewCount']
-            
-            if rating is None:
-                weight = 0.25 * count + 1 # set value of 1.25*count for recipes with no reviews
-            elif rating < 3:
-                weight = (0.5 + (rating - 1) * 0.25) * count + 1 # linear interpolation between 1.5 and 1.75 times count
+
+            if count == 0:
+                count_weight = 0.005
+            elif count <= 5:
+                count_weight = 0.01
+            elif count < 10:
+                count_weight = 0.015
             else:
-                weight = (1.0 + (rating - 3) * 0.25) * count + 1 # linear interpolation between 2.0 and 2.5 times count
+                count_weight = 0.02
+
+            if rating is None:
+                weight = 0.25 + count_weight + 1 
+            elif rating < 3:
+                weight = (0.5 + (rating - 1) * 0.25) + count_weight + 1  
+            else:
+                weight = (1.0 + (rating - 3) * 0.25) + count_weight + 1  
 
             final_dict[recipe_id] = {'average_rating': rating, 'review_count': count, 'weight': weight}
 
     return final_dict
 
 testweight = better_reviews(recipe_path)
-print(testweight)
-
-#Step 1: link all recipeids from random-recipe to average reviews; returns a dict
 
 def construct_reviews(recipe_data, review_data):
     """
@@ -95,10 +103,7 @@ def construct_reviews(recipe_data, review_data):
     
     return big_dict
 
-    
-
-#ditct = construct_reviews('backend\\data\\random-recipe.json','C:\\Users\\Kevin\\Documents\\CS4300\\finalproj\\jsonstorage\\rev.csv')
-#ditct = construct_reviews('backend\\data\\random-recipe.json','backend\\data\\reviews.json')
+ditct = construct_reviews('backend\\data\\random-recipe.json','backend\\data\\reviews.json')
 #print(ditct)
 
 #def checkEqual(L1, L2):
@@ -157,17 +162,12 @@ def rerank(id_rating_dict, id_ordered):
     rating_count_weight.append(weight)
     return(rating_count_weight)
 
-
 with open(dish_id_ingr_path, 'r') as file:
     content = file.read()
     input = ast.literal_eval(content)
 name_ing_data = input
-rating_count_weight = rerank(weighgedede,name_ing_data[1])
+rating_count_weight = rerank(testweight,name_ing_data[1])
 
-id = name_ing_data[1].index(184953)
-print(name_ing_data[0][id])
-print(name_ing_data[1][id])
-print(weighgedede[184953])
 
 def rerank_review(ranked_orig, linked_data):
     """

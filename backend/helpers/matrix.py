@@ -6,7 +6,7 @@ import numpy as np
 import ast
 from scipy.sparse.linalg import svds
 from numpy import linalg as LA
-from .reviews import rating_count_weight
+from reviews import rating_count_weight
 
 
 """
@@ -373,6 +373,8 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes,rating_count_weight):
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_dir = os.path.join(base_dir, "data", "flavors")
 recipes_file = os.path.join(base_dir, "data", "random-recipe.json")
+dish_id_ingr_path = os.path.normpath(os.path.join(base_dir, 'data', 'dish_id_ingr.txt'))
+
 
 """
 Testing Purposes:
@@ -389,16 +391,20 @@ json_dict = create_dict_from_directory(data_dir)
 #matrix = flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles)
 """
 # Contains (dish_name, dish_id, ingredients)
-dish_id_ingr(recipes_file, base_dir)
-name_ing_data = load_user_input("dish_id_ingr.txt")
+#dish_id_ingr(recipes_file, base_dir)
+
+with open(dish_id_ingr_path, 'r') as file:
+    content = file.read()
+    input = ast.literal_eval(content)
+name_ing_data = input
 
 #U in SVD (dish against latent dimensions)
 dish_latentflavors_path = os.path.join(base_dir, "data", "dish-latent-flavors-matrix.npy")
 dish_latentflavors = np.load(dish_latentflavors_path)
 
+"""
+Test Purposes:
 final_output1 = top_ten("Pulled Pork", name_ing_data, dish_latentflavors, recipes_file, rating_count_weight)
-
-
 for each in final_output1:
     print("name ", each[0])
     print("id ", each[3])
@@ -407,5 +413,6 @@ for each in final_output1:
     print("rating " , each[6])
     print("count ", each[7])
     print("++++++++++++")
+"""
 
 
