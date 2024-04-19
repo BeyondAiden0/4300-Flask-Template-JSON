@@ -375,7 +375,6 @@ data_dir = os.path.join(base_dir, "data", "flavors")
 recipes_file = os.path.join(base_dir, "data", "random-recipe.json")
 dish_id_ingr_path = os.path.normpath(os.path.join(base_dir, 'data', 'dish_id_ingr.txt'))
 
-
 """
 Testing Purposes:
 # Collect all unique flavor profiles from JSONs in the current directory
