@@ -4,6 +4,45 @@ import json
 from collections import defaultdict
 #import unittest
 
+def better_reviews(recipe_data):
+    """
+    Links all 'RecipeId's from a JSON object to their corresponding averaged reviews, then
+    weighs the reviews, and updates the dict values to that weighing value
+
+    Arguments
+    ========
+        recipe_data (str): The path to the JSON file containing the recipes data.
+
+    Returns:
+        final_dict: Dict of dict in RecipeId:{average rating, review count, weight} format
+    """
+    final_dict = {}
+    # read recipe and review data from json and aggregate ratings
+    with open(recipe_data, 'r', encoding='utf-8') as jsonfile:
+        reviews = json.load(jsonfile)
+        for review in reviews:
+            recipe_id = int(review['RecipeId'])
+            if review['ReviewCount'] is None:
+                rating = None
+                count = 0
+            else:
+                rating = review['AggregatedRating']
+                count = review['ReviewCount']
+            
+            if rating is None:
+                weight = 0.25 * count + 1 # set value of 1.25*count for recipes with no reviews
+            elif rating < 3:
+                weight = (0.5 + (rating - 1) * 0.25) * count + 1 # linear interpolation between 1.5 and 1.75 times count
+            else:
+                weight = (1.0 + (rating - 3) * 0.25) * count + 1 # linear interpolation between 2.0 and 2.5 times count
+
+            final_dict[recipe_id] = {'average_rating': rating, 'review_count': count, 'weight': weight}
+
+    return final_dict
+
+testweight = better_reviews('backend\\data\\random-recipe.json')
+print(testweight)
+
 #Step 1: link all recipeids from random-recipe to average reviews; returns a dict
 
 def construct_reviews(recipe_data, review_data):
@@ -52,7 +91,7 @@ def construct_reviews(recipe_data, review_data):
     
 
 #ditct = construct_reviews('backend\\data\\random-recipe.json','C:\\Users\\Kevin\\Documents\\CS4300\\finalproj\\jsonstorage\\rev.csv')
-ditct = construct_reviews('backend\\data\\random-recipe.json','backend\\data\\reviews.json')
+#ditct = construct_reviews('backend\\data\\random-recipe.json','backend\\data\\reviews.json')
 #print(ditct)
 
 #def checkEqual(L1, L2):
@@ -92,8 +131,8 @@ def weigh_reviews(linked_data):
     
     return another_big_dict
 
-weighgedede = weigh_reviews(ditct)
-print(weighgedede)
+#weighgedede = weigh_reviews(ditct)
+#print(weighgedede)
 
 #Step 3: given a ranked list of recipes, apply our weighting of reviews onto it
 
