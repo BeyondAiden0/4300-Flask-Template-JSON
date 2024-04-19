@@ -44,26 +44,32 @@
 
         function filterText() {
             let userInput = document.getElementById("filter-text-val").value;
-            showDropdown(userInput);
+            if (userInput.length > 0) {  // Ensure there is user input before making the call
+                fetch(`/filter_names?query=${encodeURIComponent(userInput)}`)
+                    .then(response => response.json())
+                    .then(data => showDropdown(userInput, data))  // Pass the returned data to the dropdown
+                    .catch(error => console.error('Error fetching names:', error));
+            } else {
+                showDropdown(userInput);  // Call with empty or default data if no input
+            }
         }
 
-        function showDropdown(userInput) {
+        function showDropdown(userInput, names = []) {
             const dropdown = document.getElementById("dropdown");
-            dropdown.innerHTML = ""; // Clear previous options
-            window.recipeNames.forEach(option => {
-                if (option.toLowerCase().includes(userInput.toLowerCase())) {
-                    const optionDiv = document.createElement("div");
-                    optionDiv.textContent = option;
-                    optionDiv.onclick = function () {
-                        document.getElementById("filter-text-val").value = option;
-                        dropdown.style.display = "none";
-                        storeUserInput(option);
-                    };
-                    dropdown.appendChild(optionDiv);
-                }
+            dropdown.innerHTML = "";  // Clear previous options
+            names.forEach(option => {
+                const optionDiv = document.createElement("div");
+                optionDiv.textContent = option;
+                optionDiv.onclick = function () {
+                    document.getElementById("filter-text-val").value = option;
+                    dropdown.style.display = "none";
+                    storeUserInput(option);
+                };
+                dropdown.appendChild(optionDiv);
             });
-            dropdown.style.display = "block";
+            dropdown.style.display = names.length > 0 ? "block" : "none";
         }
+
 
         function storeUserInput(userInput) {
             fetch('/store_user_input', {

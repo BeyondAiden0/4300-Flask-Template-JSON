@@ -8,6 +8,8 @@ from helpers.matrix import (
     top_ten,
     flavor_matrix
 )
+from helpers.cossimNameMatch import cossimNameMatch
+
 
 app = Flask(__name__)
 CORS(app)
@@ -33,6 +35,19 @@ def home():
 def recipe_names():
     # Return all dish names as a list
     return jsonify(name_ing_data[0])
+
+@app.route('/filter_names', methods=['GET'])
+def filter_names():
+    user_input = request.args.get('query', '')  # Get the user input from the query parameters
+    if user_input:
+        try:
+            # Assuming cossimNameMatch and other required objects are defined/imported
+            filtered_names = cossimNameMatch(user_input)
+            return jsonify(filtered_names)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    else:
+        return jsonify([])
 
 @app.route("/store_user_input", methods=["POST"])
 def store_user_input():
