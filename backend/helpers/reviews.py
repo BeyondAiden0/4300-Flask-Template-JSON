@@ -103,7 +103,7 @@ def construct_reviews(recipe_data, review_data):
     
     return big_dict
 
-ditct = construct_reviews('backend\\data\\random-recipe.json','backend\\data\\reviews.json')
+ditct = construct_reviews(recipe_path,reviews_path)
 #print(ditct)
 
 #def checkEqual(L1, L2):

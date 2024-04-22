@@ -6,7 +6,7 @@ import numpy as np
 import ast
 from scipy.sparse.linalg import svds
 from numpy import linalg as LA
-from reviews import rating_count_weight
+from .reviews import rating_count_weight
 
 
 """
@@ -234,7 +234,7 @@ def dish_id_ingr(recipes, base_dir):
             ingr.append(
                 ((re.findall(r'"(.*?)"', dish["RecipeIngredientParts"].casefold()))))
     info = (dishes, id, ingr)
-    input_file_path = os.path.join(base_dir,"data", "dish_id_ingr.txt")
+    input_file_path = os.path.join(base_dir, "data", "dish_id_ingr.txt")
     with open(input_file_path, 'w') as file:
         file.write(json.dumps(info))
 

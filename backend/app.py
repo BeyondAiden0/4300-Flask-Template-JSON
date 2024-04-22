@@ -6,26 +6,26 @@ import numpy as np
 from helpers.matrix import (
     name_ing_data,
     top_ten,
-    flavor_matrix
 )
 from helpers.cossimNameMatch import cossimNameMatch
+from helpers.reviews import rating_count_weight
 
 
 app = Flask(__name__)
 CORS(app)
 
-base_dir = os.path.dirname(os.path.abspath(__file__))
+base_dir = os.path.dirname(os.path.abspath(__file__)) # backend directory
 data_dir = os.path.join(base_dir, "data", "flavors")
 
 # Assuming 'matrix.py' provides these details
 from helpers.matrix import collect_flavor_profiles_from_directory, create_dict_from_directory, dish_id_ingr, recipes_file
 all_flavor_profiles = collect_flavor_profiles_from_directory(data_dir)
 json_dict = create_dict_from_directory(data_dir)
-name_ing_data = dish_id_ingr(recipes_file)
+# name_ing_data = dish_id_ingr(recipes_file, base_dir)
 
-# Load the flavor matrix
-flavor_matrix_path = os.path.join(base_dir, "data", "flavors-matrix.npy")
-flavor_matrix = np.load(flavor_matrix_path)
+# Load the SVD flavor matrix
+dish_latentflavors_path = os.path.join(base_dir, "data", "dish-latent-flavors-matrix.npy")
+dish_latentflavors = np.load(dish_latentflavors_path)
 
 @app.route("/")
 def home():
@@ -67,7 +67,7 @@ def get_similar_dishes():
     
     # Fetch similar dishes based on the stored user input
     try:
-        final_output = top_ten(user_input, name_ing_data, flavor_matrix, recipes_file)
+        final_output = top_ten(user_input, name_ing_data, dish_latentflavors, recipes_file, rating_count_weight)
         return jsonify(final_output)
     except Exception as e:
         return jsonify({"error": str(e)}), 500

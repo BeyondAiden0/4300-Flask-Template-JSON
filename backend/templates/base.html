@@ -105,11 +105,12 @@
                 const card = document.createElement('div');
                 card.classList.add('recipe-card');
                 card.innerHTML = `
-                    <h3>${truncate(dish[0], 25)}</h3>
-                    <p>${truncate(dish[3], 80)}</p>
-                    <p>Instructions: ${truncate(dish[4], 100)}</p>
-                    <p>Rating: ${dish[2]}</p>
-                    <p>Similarity: ${dish[1].toFixed(5)}</p>
+                    <h3>${dish[0]}</h3>
+                    <p>${truncate(dish[4], 100)}</p> 
+                    <p>User Rating: ${dish[6].toFixed(4)}</p>
+                    <p>SVD Similarity: ${dish[1].toFixed(4)}</p>
+                    <p>Weighted Ranking: ${dish[2].toFixed(4)}</p>
+
                 `;
                 card.onclick = () => showRecipeDetail(dish);
                 answerBox.appendChild(card);
@@ -126,11 +127,13 @@
             detailPopup.innerHTML = `
                 <span class="close-btn" onclick="togglePopup(false)">&times;</span>
                 <h2>${dish[0]}</h2>
-                <p><strong>ID:</strong> ${dish[2]}</p>
-                <p><strong>Description:</strong> ${dish[3]}</p>
-                <p><strong>Instructions:</strong> ${dish[4]}</p>
-                <p><strong>Rating:</strong> ${dish[2]}</p>
-                <p><strong>Similarity:</strong> ${dish[1].toFixed(2)}</p>
+                <p><strong>ID:</strong> ${dish[3]}</p>
+                <p><strong>Description:</strong> ${dish[4]}</p>
+                <p><strong>Instructions:</strong> ${dish[5]}</p>
+                <p><strong>SVD Similarity:</strong> ${dish[1].toFixed(5)}</p>
+                <p><strong>User Rating:</strong> ${dish[6].toFixed(5)}</p>
+                <p><strong>Rating Count:</strong> ${dish[7]}</p>
+                <p><strong>Weighted Ranking:</strong> ${dish[2].toFixed(5)}</p>
             `;
             togglePopup(true);
         }
