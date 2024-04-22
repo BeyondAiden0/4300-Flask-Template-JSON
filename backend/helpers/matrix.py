@@ -362,11 +362,29 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes,rating_count_weight):
             name = data[indx]["Name"]
             id = data[indx]["RecipeId"]
             desc = data[indx]["Description"]
-            recipe = data[indx]["RecipeInstructions"]
+            recipe = format_recipe(data[indx]["RecipeInstructions"])
             rating = rating_count_weight[0][indx]
             count = rating_count_weight[1][indx]
             info.append([name, cos_sim[indx], dish_sim[indx], id, desc, recipe, rating, count])
     return(info)
+
+def format_recipe(recipe):
+    result = "<br>"
+
+    recipe = recipe[1:-1]
+    s = recipe.split('\"')
+
+    for sent in s:
+        if len(sent) > 2:
+            i = sent.split(". ")
+            for inst in i:
+                if len(inst) > 3:
+                    if inst[-1] == '.':
+                        result += "- " + inst[:-1] + "<br>"
+                    else:
+                        result += "- " + inst + "<br>"
+
+    return result
 
 #######################################################################################
 
