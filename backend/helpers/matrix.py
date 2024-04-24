@@ -274,9 +274,10 @@ def flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profil
             val = flavors[flavor]
             matrix[row][ind] = val
         row += 1
+        
     dish_latentflavors, importance, latentflavor_flavors_trans = svds(matrix, k = 15)
     np.save((os.path.join(base_dir, "data","dish-latent-flavors-matrix.npy")), dish_latentflavors)
-    #np.save((os.path.join(base_dir, "data","flavors-matrix.npy")), matrix)
+    # np.save((os.path.join(base_dir, "data","flavors-matrix-test.npy")), matrix)
 
 
 """
@@ -365,7 +366,7 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes,rating_count_weight):
             id = data[indx]["RecipeId"]
             desc = data[indx]["Description"]
             recipe = format_recipe(data[indx]["RecipeInstructions"])
-            # food_warnings(recipe)
+            labels = food_warnings(recipe)
             rating = rating_count_weight[0][indx]
             count = rating_count_weight[1][indx]
             info.append([name, cos_sim[indx], dish_sim[indx], id, desc, recipe, rating, count])
@@ -403,16 +404,20 @@ def food_warnings(recipe):
 
     allergies = [shellfish, fish, peanut, treenut, milk, egg, wheat, soy, alcohol]
     labels = ["Shellfish", "Fish", "Peanut", "Treenut", "Milk", "Egg", "Wheat", "Soy", "Alcohol"]
+
+    labels = []
     
     if fish or shellfish or meat:
-        print("Meat")            
+        labels.append("Meat")            
     else:
         if not (milk or egg):
-            print("Vegan")
-        print("Vegetarian")
+            labels.append("Vegan")
+        labels.append("Vegetarian")
     for i in range(len(allergies)):
         if allergies[i]:
-            print(labels[i])
+            labels.append(labels[i])
+
+    return labels
     
 
 
@@ -423,20 +428,6 @@ data_dir = os.path.join(base_dir, "data", "flavors")
 recipes_file = os.path.join(base_dir, "data", "random-recipe.json")
 dish_id_ingr_path = os.path.normpath(os.path.join(base_dir, 'data', 'dish_id_ingr.txt'))
 
-"""
-Testing Purposes:
-# Collect all unique flavor profiles from JSONs in the current directory
-all_flavor_profiles = collect_flavor_profiles_from_directory(data_dir)
-
-# Total Number of Dishes
-ndishes = len(name_ing_data[0])
-
-# Total Number of Flavors
-nflavors = len(all_flavor_profiles)
-
-json_dict = create_dict_from_directory(data_dir)
-#matrix = flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles)
-"""
 # Contains (dish_name, dish_id, ingredients)
 #dish_id_ingr(recipes_file, base_dir)
 
@@ -461,5 +452,20 @@ for each in final_output1:
     print("count ", each[7])
     print("++++++++++++")
 """
+# print(name_ing_data[0])
+
+# Testing Purposes:
+# Collect all unique flavor profiles from JSONs in the current directory
+# all_flavor_profiles = collect_flavor_profiles_from_directory(data_dir)
+
+# # Total Number of Dishes
+# ndishes = len(name_ing_data[0])
+
+# # Total Number of Flavors
+# nflavors = len(all_flavor_profiles)
+
+# json_dict = create_dict_from_directory(data_dir)
+# matrix = flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles)
+# print(matrix[:5, :5])
 
 
