@@ -333,6 +333,8 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes,rating_count_weight):
     index = name_ing_data[0].index(query_sim.lower())
     vect = matrix_comp[index,:]
 
+    print(vect)
+
     dish_sim = []
     cos_sim = []
     for row,weight in zip(matrix_comp,rating_count_weight[2]):
@@ -363,6 +365,7 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes,rating_count_weight):
             id = data[indx]["RecipeId"]
             desc = data[indx]["Description"]
             recipe = format_recipe(data[indx]["RecipeInstructions"])
+            # food_warnings(recipe)
             rating = rating_count_weight[0][indx]
             count = rating_count_weight[1][indx]
             info.append([name, cos_sim[indx], dish_sim[indx], id, desc, recipe, rating, count])
@@ -385,6 +388,33 @@ def format_recipe(recipe):
                         result += "- " + inst + "<br>"
 
     return result
+
+def food_warnings(recipe):
+    meat = re.search(" meat|beef|chicken|pork|lamb|turkey|duck|sausage|ham", recipe)
+    shellfish = re.search("shellfish|shrimp|prawn|crawfish|lobster|crab|mussel|oyster|scallop|clam", recipe)
+    fish = re.search("fish", recipe)
+    peanut = re.search("peanut", recipe)
+    treenut = re.search(" nut|almond|hazelnut|walnut|pecan|cashew|pistachio|macademia|pine nut", recipe)
+    milk = re.search("milk|cheese|yogurt|cream", recipe)
+    egg = re.search("egg", recipe)
+    wheat = re.search("wheat|rye|barley|bread|pasta", recipe)
+    soy = re.search("soy|tofu", recipe)
+    alcohol = re.search("alcohol|beer|wine", recipe)
+
+    allergies = [shellfish, fish, peanut, treenut, milk, egg, wheat, soy, alcohol]
+    labels = ["Shellfish", "Fish", "Peanut", "Treenut", "Milk", "Egg", "Wheat", "Soy", "Alcohol"]
+    
+    if fish or shellfish or meat:
+        print("Meat")            
+    else:
+        if not (milk or egg):
+            print("Vegan")
+        print("Vegetarian")
+    for i in range(len(allergies)):
+        if allergies[i]:
+            print(labels[i])
+    
+
 
 #######################################################################################
 
