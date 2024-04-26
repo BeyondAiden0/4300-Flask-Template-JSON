@@ -274,13 +274,9 @@ def flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profil
             val = flavors[flavor]
             matrix[row][ind] = val
         row += 1
-    """
-    lat = 15
-    for (lat > 60):
-        dish_latentflavors, importance, latentflavor_flavors_trans = svds(matrix, k = lat)
-        np.save((os.path.join(base_dir, "data",str(k))), dish_latentflavors)
-        lat = lat+5
-    """
+    dish_latentflavors, importance, latentflavor_flavors_trans = svds(matrix, k = 80)
+    np.save((os.path.join(base_dir, "data", "dish-latent-flavors-matrix")), dish_latentflavors)
+    np.save((os.path.join(base_dir, "data", "latentflavor_flavors")), latentflavor_flavors_trans.T)
     #print(latentflavor_flavors_trans.T)
     #np.save((os.path.join(base_dir, "data","flavors-matrix.npy")), matrix)
     return(matrix)
@@ -393,40 +389,18 @@ name_ing_data = input
 #Testing Purposes:
 # Collect all unique flavor profiles from JSONs in the current directory
 all_flavor_profiles = collect_flavor_profiles_from_directory(data_dir)
-"""
-flavor_dict = {}
-for i, name in enumerate(all_flavor_profiles):
-  flavor_dict[name] = i
-print(flavor_dict)
-"""
-
 
 # Total Number of Dishes
 ndishes = len(name_ing_data[0])
 
 # Total Number of Flavors
 nflavors = len(all_flavor_profiles)
-"""
+
 json_dict = create_dict_from_directory(data_dir)
-matrix = flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles)
-print("matrix_done")
+#matrix = flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles)
 
-lat = 15
-while (lat < 105):
-    dish_latentflavors, importance, latentflavor_flavors_trans = svds(matrix, k = lat)
-    np.save((os.path.join(base_dir, "data",str(lat))), dish_latentflavors)
-    np.save((os.path.join(base_dir, "data",str(lat)+"v")), latentflavor_flavors_trans.T)
-    lat = lat+5
-    print(lat)
-print("done")
-"""
-
-"""
-lat = 80
-#while (lat < 105):
-print(lat)
 #U in SVD (dish against latent dimensions)
-dish_latentflavors_path = os.path.join(base_dir, "data", str(lat)+".npy")
+dish_latentflavors_path = os.path.join(base_dir, "data", "dish-latent-flavors-matrix.npy")
 dish_latentflavors = np.load(dish_latentflavors_path)
 
 
@@ -441,114 +415,24 @@ for each in final_output1:
     #print("rating " , each[6])
     #print("count ", each[7])
     print("++++++++++++")
-lat = lat+5
+    
 """
+# Used to Determine Flavors the Makes up each Latent Dimension
+# Creates Dictionary of {flavor : column index in flavor matrix}
+flavor_dict = {}
+for i, name in enumerate(all_flavor_profiles):
+  flavor_dict[name] = i
 
-lat = 80
-#while (lat < 105):
-print(lat)
-#U in SVD (dish against latent dimensions)
-dish_latentflavors_path = os.path.join(base_dir, "data", str(lat)+"v.npy")
-v = np.load(dish_latentflavors_path)
+v_path = os.path.join(base_dir, "data", "latentflavor_flavors.npy")
+v = np.load(v_path)
 
-word_to_index = {'absolute': 0, 'acacia': 1, 'acetic': 2, 'acetoin': 3, 'acetone': 4, 
-                 'acetophenone': 5, 'acid': 6, 'acidic': 7, 'acrid': 8, 'acrylate': 9, 
-                 'acrylic': 10, 'alcohol': 11, 'alcoholic': 12, 'aldehydic': 13, 'alkaline': 14, 
-                 'alkane': 15, 'alliaceous': 16, 'allspice': 17, 'almond': 18, 'almond shell': 19,
-                 'amber': 20, 'ambergris': 21, 'amine': 22, 'ammonia': 23, 'ammoniacal': 24, 
-                 'angelica': 25, 'animal': 26, 'anise': 27, 'aniseed': 28, 'anisic': 29, 'apple': 30, 
-                 'apple peel': 31, 'apple skin': 32, 'apricot': 33, 'aromatic': 34, 'arrack': 35, 
-                 'asprin': 36, 'bacon': 37, 'baked': 38, 'balsam': 39, 'balsamic': 40, 'banana': 41, 
-                 'banana peel': 42, 'barley': 43, 'basil': 44, 'bay oil': 45, 'bean': 46, 'beany': 47, 
-                 'beef': 48, 'beefy': 49, 'beer': 50, 'beet': 51, 'bell': 52, 'benzaldehyde': 53, 
-                 'benzyl acetate': 54, 'benzyl propionate': 55, 'bergamot': 56, 'berry': 57, 'biscuit': 58, 
-                 'bitter': 59, 'bitter almond': 60, 'black currant': 61, 'black tea': 62, 'blackberry': 63, 
-                 'blackcurrant': 64, 'bland': 65, 'bloody': 66, 'blossom': 67, 'blueberry': 68, 'boiled shrimp': 69, 
-                 'boiled vegetable': 70, 'bois de rose': 71, 'borneol': 72, 'bouillon': 73, 'box tree': 74, 'brandy': 75, 
-                 'bread': 76, 'bread crust': 77, 'bready': 78, 'broccoli': 79, 'broom': 80, 'brown': 81, 'buchu': 82, 
-                 'burnt': 83, 'burnt almonds': 84, 'burnt sugar': 85, 'butter': 86, 'butterscotch': 87, 'buttery': 88, 
-                 'butyric': 89, 'cabbage': 90, 'cadaverous': 91, 'camomile': 92, 'camphor': 93, 'camphoraceous': 94, 
-                 'camphoreous': 95, 'cananga': 96, 'candy': 97, 'cantaloupe': 98, 'caramel': 99, 'caramellic': 100, 
-                 'caraway': 101, 'cardboard': 102, 'carnation': 103, 'carrot': 104, 'cashew': 105, 'cassia': 106, 
-                 'cassie': 107, 'castoreum': 108, 'cat': 109, 'cat-urine': 110, 'catty': 111, 'cauliflower': 112, 
-                 'cedar': 113, 'cedarleaf': 114, 'cedarwood': 115, 'celery': 116, 'cereal': 117, 'chamomile': 118, 
-                 'cheese': 119, 'cheesy': 120, 'chemical': 121, 'cherry': 122, 'chicken': 123, 'chip': 124, 'chocolate': 125,
-                 'chrysanthemum': 126, 'cinnamic': 127, 'cinnamon': 128, 'cinnamyl': 129, 'cistus': 130, 'citral': 131, 
-                 'citric': 132, 'citrus': 133, 'citrus peel': 134, 'civet': 135, 'clam': 136, 'clary': 137, 'clean': 138, 
-                 'clean cloth': 139, 'clean clothes': 140, 'clove': 141, 'clover': 142, 'cocoa': 143, 'coconut': 144, 
-                 'coffee': 145, 'cognac': 146, 'cooked': 147, 'cooked beef juice': 148, 'cooked potato': 149, 'cool': 150, 
-                 'cooling': 151, 'coriander': 152, 'corn': 153, 'cortex': 154, 'cotton': 155, 'cotton candy': 156, 
-                 'coumarin': 157, 'coumarinic': 158, 'cranberry': 159, 'cream': 160, 'creamy': 161, 'creosote': 162, 
-                 'cresol': 163, 'crushed bug': 164, 'cucumber': 165, 'cucumber skin': 166, 'cultured dairy': 167, 
-                 'cumin': 168, 'cuminseed': 169, 'curry': 170, 'cut grass': 171, 'cut privet': 172, 'cyclamen': 173, 
-                 'dairy': 174, 'damascone': 175, 'decomposing cabbage': 176, 'deep': 177, 'delicate': 178, 'dewy': 179, 
-                 'dill': 180, 'diphenyl oxide': 181, 'dirty': 182, 'diterpene': 183, 'dried berry': 184, 'dried raspberry': 185, 
-                 'dry': 186, 'dust': 187, 'dusty': 188, 'earth': 189, 'earthy': 190, 'egg': 191, 'ester': 192, 'estery': 193, 
-                 'ether': 194, 'ethereal': 195, 'ethyl benzoate': 196, 'eucalyptus': 197, 'eugenol': 198, 'extremely sweet': 199, 
-                 'faint': 200, 'fat': 201, 'fatty': 202, 'fecal': 203, 'feet': 204, 'fenchyl': 205, 'fennel': 206, 'fenugreek': 207, 
-                 'fermented': 208, 'filbert': 209, 'fir': 210, 'fir needle': 211, 'fish': 212, 'fishy': 213, 'flat': 214, 'floral': 215, 
-                 'flower': 216, 'foliage': 217, 'formyl': 218, 'fragrant': 219, 'fresh': 220, 'fresh air': 221, 'fried': 222, 'fruit': 223, 
-                 'fruity': 224, 'fungal': 225, 'furfural': 226, 'fusel': 227, 'galbanum': 228, 'gardenia': 229, 'garlic': 230, 'gasoline': 231, 
-                 'gassy': 232, 'genet': 233, 'geranium': 234, 'ginger': 235, 'glue': 236, 'gooseberry': 237, 'grain': 238, 'grape': 239, 
-                 'grape skin': 240, 'grapefruit': 241, 'grapefruit peel': 242, 'grass': 243, 'grassy': 244, 'gravy': 245, 'greasy': 246, 
-                 'green': 247, 'green bean': 248, 'green pepper': 249, 'green tea': 250, 'guaiacol': 251, 'guaiacwood': 252, 'ham': 253, 
-                 'harsh': 254, 'hawthorn': 255, 'hawthorne': 256, 'hay': 257, 'hazelnut': 258, 'heather': 259, 'heavy': 260, 'heliotrope': 261, 
-                 'heliotropin': 262, 'herb': 263, 'herbaceous': 264, 'herbal': 265, 'honey': 266, 'honeydew': 267, 'honeysuckle': 268, 
-                 'hop_oil': 269, 'horseradish': 270, 'hot milk': 271, 'hummus': 272, 'hyacinth': 273, 'incense': 274, 'indole': 275, 
-                 'intensely': 276, 'ionone': 277, 'iris': 278, 'jam': 279, 'jammy': 280, 'jasmin': 281, 'jasmine': 282, 'juicy': 283, 
-                 'ketonic': 284, 'kiwi': 285, 'labdanum': 286, 'lactonic': 287, 'lamb': 288, 'lard': 289, 'laundered cloths': 290, 
-                 'laundry': 291, 'lavender': 292, 'leaf': 293, 'leafy': 294, 'leather': 295, 'leathery': 296, 'leaves': 297, 
-                 'leek': 298, 'lemon': 299, 'lemon peel': 300, 'lemongrass': 301, 'lettuce': 302, 'licorice': 303, 'light': 304, 
-                 'lilac': 305, 'lily': 306, 'lime': 307, 'linalool': 308, 'linden': 309, 'logenberry': 310, 'lovage': 311, 
-                 'low': 312, 'magnolia': 313, 'mahogany': 314, 'malt': 315, 'malty': 316, 'mandarin': 317, 'mango': 318, 
-                 'maple': 319, 'maple syrup': 320, 'marigold': 321, 'marshmallow': 322, 'matches': 323, 'meat': 324, 'meat broth': 325, 
-                 'meaty': 326, 'medical': 327, 'medicinal': 328, 'medicine': 329, 'melon': 330, 'melon rind': 331, 'menthol': 332, 
-                 'mentholic': 333, 'mesquite': 334, 'metal': 335, 'metallic': 336, 'mignonette': 337, 'mild': 338, 'mildew': 339, 
-                 'milk': 340, 'milky': 341, 'mimosa': 342, 'mint': 343, 'minty': 344, 'molasses': 345, 'mold': 346, 'moldy': 347, 
-                 'moss': 348, 'mossy': 349, 'moth ball': 350, 'mothball': 351, 'mouldy': 352, 'mousy': 353, 'muguet': 354, 
-                 'mushroom': 355, 'musk': 356, 'musky': 357, 'must': 358, 'mustard': 359, 'musty': 360, 'myrcene': 361, 
-                 'myrrh': 362, 'naphthalic': 363, 'naphthelene': 364, 'naphthyl': 365, 'narcissus': 366, 'natural': 367,
-                 'neroli': 368, 'new mown hay': 369, 'nitrile': 370, 'nut': 371, 'nut skin': 372, 'nutmeg': 373, 'nutty': 374, 
-                 'oakmoss': 375, 'ocimene': 376, 'odorless': 377, 'oil': 378, 'oily': 379, 'old paper': 380, 'old wood': 381, 
-                 'onion': 382, 'opoponax': 383, 'orange': 384, 'orange blossom': 385, 'orange flower': 386, 'orange peel': 387, 
-                 'orchid': 388, 'oriental': 389, 'orris': 390, 'others': 391, 'outdoor': 392, 'overripe fruit': 393, 'ozone': 394, 
-                 'paint': 395, 'painty': 396, 'papaya': 397, 'paper': 398, 'parsley': 399, 'passion fruit': 400, 'pastry': 401, 
-                 'patchouli': 402, 'pea': 403, 'peach': 404, 'peanut': 405, 'peanut butter': 406, 'pear': 407, 'pear skin': 408,
-                 'peely': 409, 'penetrating': 410, 'peony': 411, 'pepper': 412, 'peppermint': 413, 'peppery': 414, 'petal': 415,
-                 'petitgrain': 416, 'phenol': 417, 'phenolic': 418, 'pine': 419, 'pine needle': 420, 'pineapple': 421, 
-                 'pistachio': 422, 'plant': 423, 'plastic': 424, 'pleasant': 425, 'plum': 426, 'popcorn': 427, 'pork': 428, 
-                 'potato': 429, 'powdery': 430, 'powerful': 431, 'privet': 432, 'prune': 433, 'pulpy': 434, 'pumpkin': 435, 
-                 'pungent': 436, 'putrid': 437, 'pyridine': 438, 'radish': 439, 'rancid': 440, 'raspberry': 441, 'raw': 442,
-                 'red fruit': 443, 'red hots': 444, 'red rose': 445, 'repulsive': 446, 'resin': 447, 'resinous': 448, 
-                 'rhubarb': 449, 'ripe': 450, 'ripe apricot': 451, 'roast': 452, 'roast beef': 453, 'roasted': 454, 
-                 'roasted meat': 455, 'roasted nut': 456, 'roasted nuts': 457, 'roasted peanuts': 458, 'root': 459, 
-                 'rooty': 460, 'roquefort cheese': 461, 'rose': 462, 'rose acetate': 463, 'rose bud': 464, 
-                 'rose dried': 465, 'rose flower': 466, 'rose oxide': 467, 'rose water': 468, 'rosemary': 469,
-                 'rosy': 470, 'rotten': 471, 'rotting': 472, 'rubber': 473, 'rubbery': 474, 'rum': 475, 'rummy': 476, 
-                 'saffron': 477, 'sandalwood': 478, 'sappy': 479, 'sarsaparilla': 480, 'sassafrass': 481, 'sausage': 482, 
-                 'savory': 483, 'scallion': 484, 'seaweed': 485, 'seedy': 486, 'sharp': 487, 'shellfish': 488, 'shrimp': 489, 
-                 'sickening': 490, 'skunky': 491, 'slightly fruity': 492, 'slightly rose': 493, 'slightly waxy': 494, 
-                 'smoke': 495, 'smoked': 496, 'smoky': 497, 'soap': 498, 'soapy': 499, 'soft': 500, 'soil': 501, 
-                 'solvent': 502, 'soup': 503, 'sour': 504, 'soy': 505, 'soybean': 506, 'spearmint': 507, 'spice': 508, 
-                 'spicy': 509, 'stem': 510, 'stinky': 511, 'storax': 512, 'straw': 513, 'strawberry': 514, 'strong': 515, 
-                 'styrax': 516, 'styrene': 517, 'sugar': 518, 'sulfur': 519, 'sulfurous': 520, 'sulfury': 521, 'sweat': 522, 
-                 'sweaty': 523, 'sweet': 524, 'sweet corn': 525, 'sweet-like': 526, 'syrup': 527, 'taco': 528, 'tallow': 529, 
-                 'tangy': 530, 'tar': 531, 'tarragon': 532, 'tarry': 533, 'tart': 534, 'tea': 535, 'terpene': 536, 'terpenic': 537, 
-                 'terpentine': 538, 'terpineol': 539, 'thuja': 540, 'thujone': 541, 'thyme': 542, 'thymol': 543, 'toasted': 544, 
-                 'tobacco': 545, 'toffee': 546, 'toluene': 547, 'tomato': 548, 'tomato leaf': 549, 'tonka': 550, 'tropica': 551, 
-                 'tropical': 552, 'truffle': 553, 'tuberose': 554, 'turnup': 555, 'turpentine': 556, 'tutti frutti': 557, 
-                 'unpleasant': 558, 'unripe banana': 559, 'unripe fruit': 560, 'unripe plum': 561, 'urine': 562, 'valerian': 563,
-                 'vanilla': 564, 'vanillin': 565, 'vegetable': 566, 'very mild': 567, 'very slight': 568, 'very strong': 569, 
-                 'vinegar': 570, 'vinous': 571, 'violet': 572, 'violet-leaf': 573, 'walnut': 574, 'warm': 575, 'wasabi': 576, 
-                 'watercress': 577, 'watermelon': 578, 'watery': 579, 'wax': 580, 'waxy': 581, 'weak': 582, 'weak spice': 583, 
-                 'weedy': 584, 'wet': 585, 'whiskey': 586, 'wild': 587, 'wine': 588, 'wine-lee': 589, 'wine_like': 590, 
-                 'winey': 591, 'wintergreen': 592, 'wood': 593, 'woody': 594, 'yeast': 595, 'yeasty': 596, 'ylang': 597};
+word_to_index = flavor_dict
 index_to_word = {i:t for t,i in word_to_index.items()}
 words_compressed = v
-k=80
-for i in range(k):
+for i in range(80):
     print("Top words in dimension", i)
     dimension_col = words_compressed[:,i].squeeze()
     asort = np.argsort(-dimension_col)
     print([index_to_word[i] for i in asort[:10]])
     print()
+"""
