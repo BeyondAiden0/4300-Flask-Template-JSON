@@ -301,9 +301,21 @@ h1 span:nth-child(14) {
     border-radius: 30px;
     padding: 20px;
     z-index: 1000; /* Ensure it's on top */
-    display: none; /* Hide by default */
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
     overflow-y: auto; /* Enable scroll if content is too long */
     text-align: left; /* Ensure all text aligns to the left */
+}
+
+/* Centering labels container in the popup */
+.recipe-detail-popup .labels-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* In case there are many labels they will wrap */
+    width: 100%; /* Take the full width */
+    margin-bottom: 20px; /* Spacing below the labels */
 }
 
 /* Specific styling for the recipe title in the popup */
@@ -335,13 +347,13 @@ h1 span:nth-child(14) {
     color: #333 !important; /* Override color to ensure it's black, !important as last resort */
     text-align: center;
     vertical-align: middle;
-    margin: 2px;
+    margin: 5px;
     /* Add other styles if necessary */
 }
 
 .meat { background-color: #ffcccb; }
 .vegan { background-color: #aef4ae; }
-.vegetarian { background-color: #ffff99; }
+.vegetarian { background-color: #acff99; }
 .peanut { background-color: #ffd700; }
 .shellfish { background-color: #87cefa; }
 .treenut { background-color: #deb887; }
@@ -350,3 +362,33 @@ h1 span:nth-child(14) {
 .wheat { background-color: #f5deb3; }
 .soy { background-color: #ffa500; }
 .alcohol { background-color: #c0c0c0; }
+
+.star-rating {
+    unicode-bidi: bidi-override;
+    color: #c5c5c5;
+    font-size: 25px;
+    height: 25px;
+    width: 125px;
+    margin: 0 auto;
+    position: relative;
+    padding: 0;
+    text-shadow: 0px 1px 0 #a2a2a2;
+  }
+  
+  .star-rating span {
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+  }
+  
+  .star-rating span::before {
+    content: "\2605\2605\2605\2605\2605";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: #ffc107;
+  }
+  

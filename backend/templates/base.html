@@ -147,11 +147,16 @@
 
                 let labelsHtml = dish[8].map(label => `<span class="tag ${label.toLowerCase()}">${label}</span>`).join(' '); // Generates tag HTML
 
+                // Calculate width for star rating based on the dish rating
+                let ratingPercentage = (dish[6] / 5) * 100; 
+
                 card.innerHTML = `
                     <h3>${dish[0]}</h3>
                     <div>${labelsHtml}</div>
+                    <div class="star-rating">
+                        <span style="width:${ratingPercentage}%;">★★★★★</span>
+                    </div>
                     <p>${truncate(dish[4], 100)}</p>
-                    <p>User Rating: ${dish[6].toFixed(4)}</p>
                     <p>SVD Similarity: ${dish[1].toFixed(4)}</p>
                     <p>Weighted Ranking: ${dish[2].toFixed(4)}</p>
                 `;
@@ -176,15 +181,21 @@
             }
             let labelsHtml = dish[8].map(label => `<span class="tag ${label.toLowerCase()}">${label}</span>`).join(' '); // Generates tag HTML
 
+            // Calculate width for star rating based on the dish rating
+            let ratingPercentage = (dish[6] / 5) * 100; 
+
             detailPopup.innerHTML = `
                 <span class="close-btn" onclick="togglePopup(false)">&times;</span>
                 <h2>${dish[0]}</h2>
+                <div class="labels-container">${labelsHtml}</div>
+                <div class="star-rating">
+                    <span style="width:${ratingPercentage}%;">★★★★★</span>
+                </div>
                 <p><strong>ID:</strong> ${dish[3]}</p>
-                <div>${labelsHtml}</div>
                 <p><strong>Description:</strong> ${dish[4]}</p>
                 <p><strong>Instructions:</strong> ${dish[5]}</p>
                 <p><strong>SVD Similarity:</strong> ${dish[1].toFixed(5)}</p>
-                <p><strong>User Rating:</strong> ${dish[6].toFixed(5)}</p>
+
                 <p><strong>Rating Count:</strong> ${dish[7]}</p>
                 <p><strong>Weighted Ranking:</strong> ${dish[2].toFixed(5)}</p>
             `;
