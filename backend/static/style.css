@@ -254,24 +254,48 @@ h1 span:nth-child(14) {
 
 /* Style for individual cards */
 .recipe-card {
-    background-color: rgb(245, 245, 240); /* Slight grey background */
-    border: 1px solid #ccc; /* Light grey border */
+    background-color: rgb(245, 245, 240); 
+    border: 1px solid #ccc; 
     border-radius: 15px;
-    padding: 8px; /* Adjust padding to fit content in a smaller area */
-    height: 320px; /* Adjusted height */
+    padding: 15px; 
+    height: 320px; 
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Space content evenly */
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1); /* Soft shadow for depth */
-    cursor: pointer; /* Pointer cursor for interaction */
+    justify-content: space-between; 
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1); 
+    cursor: pointer; 
+    align-items: flex-start; /* Align text to the left */
 }
 
-/* Enhancements to the recipe card text to avoid overflow */
-.recipe-card h3, .recipe-card p {
+/* .recipe-card h3 {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.recipe-card p {
+    margin: 5px 0;
+} */
+
+/* .recipe-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; 
+    padding: 15px; 
+} */
+
+.recipe-card .centered-content {
+    align-self: center; /* Center the star rating and tags */
+    width: 100%; /* Take full width of the card */
+    text-align: center; /* Center content */
+}
+
+.recipe-card .text-content {
+    width: 100%; /* Take full width of the card */
+    text-align: left; /* Align text to the left */
+    margin-bottom: 10px; /* Space below the text content */
+}
+
 
 /* Style for the pop-up detailed view */
 .full-body-container {
@@ -363,7 +387,7 @@ h1 span:nth-child(14) {
 .soy { background-color: #ffa500; }
 .alcohol { background-color: #c0c0c0; }
 
-.star-rating {
+/* .star-rating {
     unicode-bidi: bidi-override;
     color: #c5c5c5;
     font-size: 25px;
@@ -391,4 +415,23 @@ h1 span:nth-child(14) {
     left: 0;
     color: #ffc107;
   }
-  
+   */
+
+.star-rating {
+    display: flex;       /* Use flexbox to center children */
+    justify-content: center; /* Center children horizontally */
+    align-items: center; /* Center children vertically, if necessary */
+    height: 25px;       /* Height of the star rating */
+    width: 100%;        /* Take the full width of its parent to center content */
+    margin: 0 auto;     /* Auto margins for any additional centering */
+    color: #ffc107;
+}
+
+.star-rating span {
+    display: block;     /* Make the span a block element */
+    position: relative; /* Positioned relative to its parent */
+    text-align: center; /* Ensure the stars are aligned in the center if span is block */
+}
+
+
+
