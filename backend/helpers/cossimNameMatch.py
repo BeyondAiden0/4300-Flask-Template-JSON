@@ -54,9 +54,43 @@ try:
     tfidf_matrix = vectorizer.transform(names)
 
 
-    def cossimNameMatch(user_input, vectorizer=vectorizer, tfidf_matrix=tfidf_matrix, recipe_list=names):
+    # def cossimNameMatch(user_input, vectorizer=vectorizer, tfidf_matrix=tfidf_matrix, recipe_list=names):
+    #     """
+    #     Finds top 10 similar dish names within database using cosine similarity
+
+    #     Arguments
+    #     ========
+    #         user_input: user input of String
+    #         vectorizer: Precomputed TfidfVectorizer
+    #         tfidf_matrix: Precomputed TF-IDF matrix
+    #         recipe_list: List of recipes
+
+    #     Returns:
+    #         top_10_similar: ranked list of top 10 results
+    #     """
+    #     # Transform the user_input into the TF-IDF space
+    #     user_input_vector = vectorizer.transform([user_input])
+
+    #     # Compute the cosine similarity with the pre-computed vectors
+    #     cosine_sim = cosine_similarity(user_input_vector, tfidf_matrix)
+
+    #     # Get the pairwise similarity scores of all dishes with that dish
+    #     sim_scores = list(enumerate(cosine_sim[0]))
+
+    #     # Use a heap to maintain the top 10 scores
+    #     top_10_similar = heapq.nlargest(10, sim_scores, key=lambda x: x[1])
+
+    #     # Get the dish indices
+    #     dish_indices = [i[0] for i in top_10_similar]
+
+    #     # Return the top 10 most similar dishes
+    #     top_10_similar = [recipe_list[i] for i in dish_indices]
+
+    #     return top_10_similar
+
+    def cossimNameMatch(user_input, vectorizer=vectorizer, tfidf_matrix=tfidf_matrix, recipe_list=names, threshold=0.5):
         """
-        Finds top 10 similar dish names within database using cosine similarity
+        Finds similar dish names within the database using cosine similarity, filtered by a relevance threshold.
 
         Arguments
         ========
@@ -64,29 +98,31 @@ try:
             vectorizer: Precomputed TfidfVectorizer
             tfidf_matrix: Precomputed TF-IDF matrix
             recipe_list: List of recipes
+            threshold: minimum cosine similarity score for a recipe to be considered similar
 
         Returns:
-            top_10_similar: ranked list of top 10 results
+            top_results: ranked list of up to 10 results that meet the threshold
         """
         # Transform the user_input into the TF-IDF space
         user_input_vector = vectorizer.transform([user_input])
 
         # Compute the cosine similarity with the pre-computed vectors
-        cosine_sim = cosine_similarity(user_input_vector, tfidf_matrix)
+        cosine_sim = cosine_similarity(user_input_vector, tfidf_matrix)[0]
 
-        # Get the pairwise similarity scores of all dishes with that dish
-        sim_scores = list(enumerate(cosine_sim[0]))
+        # Filter results that meet the relevance threshold
+        filtered_results = [(index, sim_score) for index, sim_score in enumerate(cosine_sim) if sim_score > threshold]
 
-        # Use a heap to maintain the top 10 scores
-        top_10_similar = heapq.nlargest(10, sim_scores, key=lambda x: x[1])
+        # Use a heap to maintain the top 10 scores from filtered results
+        top_results = heapq.nlargest(10, filtered_results, key=lambda x: x[1])
 
         # Get the dish indices
-        dish_indices = [i[0] for i in top_10_similar]
+        dish_indices = [i[0] for i in top_results]
 
         # Return the top 10 most similar dishes
-        top_10_similar = [recipe_list[i] for i in dish_indices]
+        top_results = [recipe_list[i] for i in dish_indices]
 
-        return top_10_similar
+        return top_results
+
 
 
     print(cossimNameMatch("pulled spork"))
