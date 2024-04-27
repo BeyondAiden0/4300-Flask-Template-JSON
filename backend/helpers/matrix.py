@@ -6,7 +6,7 @@ import numpy as np
 import ast
 from scipy.sparse.linalg import svds
 from numpy import linalg as LA
-from .reviews import rating_count_weight
+from reviews import rating_count_weight
 
 
 """
@@ -276,7 +276,7 @@ def flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profil
         row += 1
     dish_latentflavors, importance, latentflavor_flavors_trans = svds(matrix, k = 80)
     np.save((os.path.join(base_dir, "data", "dish-latent-flavors-matrix")), dish_latentflavors)
-    np.save((os.path.join(base_dir, "data", "latentflavor_flavors")), latentflavor_flavors_trans.T)
+    #np.save((os.path.join(base_dir, "data", "latentflavor_flavors")), latentflavor_flavors_trans.T)
     #print(latentflavor_flavors_trans.T)
     #np.save((os.path.join(base_dir, "data","flavors-matrix.npy")), matrix)
     return(matrix)
@@ -372,6 +372,70 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes,rating_count_weight):
             info.append([name, cos_sim[indx], dish_sim[indx], id, desc, recipe, rating, count, labels])
     return(info)
 
+def top_ten_vector(top_ten, dish_order, matrix_comp):
+    original = []
+    vectors = []
+    for dishes in top_ten:
+        name = dishes[0]
+        dish_indx = dish_order.index(name.lower())
+        vect = matrix_comp[dish_indx, :]
+        original.append(vect)
+        top = np.argsort(vect)[::-1]
+        vectors.append(top)
+    return([original, vectors])
+
+def top_latent(query_sim, top_ten_vects, dish_order, matrix_comp):
+    print("start")
+    indx = dish_order.index(query_sim.lower())
+    in_vect = matrix_comp[indx,:]
+    in_vect = np.argsort(in_vect)[::-1]
+    print(in_vect)
+
+    final = []
+    for ori, vects in zip(top_ten_vects[0], top_ten_vects[1]):
+        print(vects)
+        top_lat = []
+        size = 10
+        while len(top_lat) < 5:
+            mini_vects = vects[:size]
+            mini_in = set(in_vect[:size])
+            inter = mini_in.intersection(set(mini_vects))
+            if len(inter) != 0:
+                for lat_indx in inter:
+                    top_lat.append(lat_indx)
+            size = size + 5
+        top_lat = list(set(top_lat))
+        order = []
+        for val in top_lat:
+            order.append([val,ori[val]])
+        ordered = sorted(order, key=lambda x: x[1])
+        temp = []
+        for element in ordered:
+            temp.append(element[0])
+        temp = temp[::-1]
+        if len(temp) != 5:
+            top_lat = temp[:5]
+        final.append(top_lat)
+    return(final)
+
+def find_latent_dims(all_flavor_profiles, base_dir):
+    flavor_dict = {}
+    for i, name in enumerate(all_flavor_profiles):
+        flavor_dict[name] = i
+
+    v_path = os.path.join(base_dir, "data", "latentflavor_flavors.npy")
+    v = np.load(v_path)
+
+    word_to_index = flavor_dict
+    index_to_word = {i:t for t,i in word_to_index.items()}
+    words_compressed = v
+    lat_dims_dict = {}
+    for i in range(80):
+        dimension_col = words_compressed[:,i].squeeze()
+        asort = np.argsort(-dimension_col)
+        lat_dims_dict.update({i:[index_to_word[i] for i in asort[:10]]})
+    return(lat_dims_dict)
+
 
 def format_recipe(recipe):
     result = "<br>"
@@ -423,7 +487,6 @@ def food_warnings(recipe):
 
 
 #######################################################################################
-
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_dir = os.path.join(base_dir, "data", "flavors")
 recipes_file = os.path.join(base_dir, "data", "random-recipe.json")
@@ -456,34 +519,27 @@ dish_latentflavors = np.load(dish_latentflavors_path)
 
 
 #Test Purposes:
+
 final_output1 = top_ten("Cottage Cheese Banana Sundae", name_ing_data, dish_latentflavors, recipes_file, rating_count_weight)
+top_vects = top_ten_vector(final_output1, name_ing_data[0], dish_latentflavors)
+for vect in top_vects:
+    print(vect)
 
-for each in final_output1:
-    print("name ", each[0])
-    #print("id ", each[3])
-    print("cosine "  , each[1])
-    #print("ranking " , each[2])
-    #print("rating " , each[6])
-    #print("count ", each[7])
-    print("++++++++++++")
+lats = top_latent("Cottage Cheese Banana Sundae", top_vects, name_ing_data[0], dish_latentflavors)
+
+"""
+print("dict1")
+lat_dict = find_latent_dims(all_flavor_profiles, base_dir)
+print(lat_dict)
+print("dict2")
+
+
+
+print("lat1")
+lats = top_latent("Cottage Cheese Banana Sundae", top_vects, name_ing_data[0], dish_latentflavors)
+print(lat)
+print("lat2")
+"""
+
+
     
-"""
-# Used to Determine Flavors the Makes up each Latent Dimension
-# Creates Dictionary of {flavor : column index in flavor matrix}
-flavor_dict = {}
-for i, name in enumerate(all_flavor_profiles):
-  flavor_dict[name] = i
-
-v_path = os.path.join(base_dir, "data", "latentflavor_flavors.npy")
-v = np.load(v_path)
-
-word_to_index = flavor_dict
-index_to_word = {i:t for t,i in word_to_index.items()}
-words_compressed = v
-for i in range(80):
-    print("Top words in dimension", i)
-    dimension_col = words_compressed[:,i].squeeze()
-    asort = np.argsort(-dimension_col)
-    print([index_to_word[i] for i in asort[:10]])
-    print()
-"""
