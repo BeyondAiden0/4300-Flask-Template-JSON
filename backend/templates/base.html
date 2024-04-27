@@ -142,10 +142,10 @@
             answerBox.innerHTML = ''; // Clear previous results
 
             dishes.forEach(dish => {
-                console.log(`Creating tags for dish: ${dish[0]}`); 
                 const card = document.createElement('div');
                 card.classList.add('recipe-card');
 
+                let labelsHtml = dish[8].map(label => `<span class="tag ${label.toLowerCase()}">${label}</span>`).join(' '); // Generates tag HTML
 
                 card.innerHTML = `
                     <h3>${dish[0]}</h3>

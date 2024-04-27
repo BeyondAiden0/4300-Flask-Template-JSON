@@ -326,3 +326,27 @@ h1 span:nth-child(14) {
     font-size: 24px;
 }
 
+.tag {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 0.75em;
+    border-radius: 15px;
+    background-color: #f2f2f2; /* Default background, will be overridden by specific class */
+    color: #333 !important; /* Override color to ensure it's black, !important as last resort */
+    text-align: center;
+    vertical-align: middle;
+    margin: 2px;
+    /* Add other styles if necessary */
+}
+
+.meat { background-color: #ffcccb; }
+.vegan { background-color: #aef4ae; }
+.vegetarian { background-color: #ffff99; }
+.peanut { background-color: #ffd700; }
+.shellfish { background-color: #87cefa; }
+.treenut { background-color: #deb887; }
+.milk { background-color: #fefedd; }
+.egg { background-color: #f8f86d; }
+.wheat { background-color: #f5deb3; }
+.soy { background-color: #ffa500; }
+.alcohol { background-color: #c0c0c0; }
