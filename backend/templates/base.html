@@ -130,6 +130,7 @@
             .catch(error => console.error('Error:', error));
         }
 
+
         function displayTopSimilarDishes(dishes) {
         /**
          * Displays cards for each similar dish returned by the server.
@@ -141,20 +142,24 @@
             answerBox.innerHTML = ''; // Clear previous results
 
             dishes.forEach(dish => {
+                console.log(`Creating tags for dish: ${dish[0]}`); 
                 const card = document.createElement('div');
                 card.classList.add('recipe-card');
+
+
                 card.innerHTML = `
                     <h3>${dish[0]}</h3>
-                    <p>${truncate(dish[4], 100)}</p> 
+                    <div>${labelsHtml}</div>
+                    <p>${truncate(dish[4], 100)}</p>
                     <p>User Rating: ${dish[6].toFixed(4)}</p>
                     <p>SVD Similarity: ${dish[1].toFixed(4)}</p>
                     <p>Weighted Ranking: ${dish[2].toFixed(4)}</p>
-
                 `;
                 card.onclick = () => showRecipeDetail(dish);
                 answerBox.appendChild(card);
             });
         }
+
 
 
         function showRecipeDetail(dish) {
@@ -169,10 +174,13 @@
                 console.error('Detail popup container not found.');
                 return;
             }
+            let labelsHtml = dish[8].map(label => `<span class="tag ${label.toLowerCase()}">${label}</span>`).join(' '); // Generates tag HTML
+
             detailPopup.innerHTML = `
                 <span class="close-btn" onclick="togglePopup(false)">&times;</span>
                 <h2>${dish[0]}</h2>
                 <p><strong>ID:</strong> ${dish[3]}</p>
+                <div>${labelsHtml}</div>
                 <p><strong>Description:</strong> ${dish[4]}</p>
                 <p><strong>Instructions:</strong> ${dish[5]}</p>
                 <p><strong>SVD Similarity:</strong> ${dish[1].toFixed(5)}</p>
@@ -182,6 +190,7 @@
             `;
             togglePopup(true);
         }
+
 
         function togglePopup(show) {
         /**

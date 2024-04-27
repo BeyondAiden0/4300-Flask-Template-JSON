@@ -78,25 +78,26 @@ body:hover span {
     }
 }
 
-span:nth-child(4n) {
+h1 span:nth-child(4n) {
     color: hsl(50, 75%, 55%);
     text-shadow: 1px 1px hsl(50, 75%, 45%), 2px 2px hsl(50, 45%, 45%), 3px 3px hsl(50, 45%, 45%), 4px 4px hsl(50, 75%, 45%);
 }
 
-span:nth-child(4n-1) {
+h1 span:nth-child(4n-1) {
     color: hsl(135, 35%, 55%);
     text-shadow: 1px 1px hsl(135, 35%, 45%), 2px 2px hsl(135, 35%, 45%), 3px 3px hsl(135, 35%, 45%), 4px 4px hsl(135, 35%, 45%);
 }
 
-span:nth-child(4n-2) {
+h1 span:nth-child(4n-2) {
     color: hsl(155, 35%, 60%);
     text-shadow: 1px 1px hsl(155, 25%, 50%), 2px 2px hsl(155, 25%, 50%), 3px 3px hsl(155, 25%, 50%), 4px 4px hsl(140, 25%, 50%);
 }
 
-span:nth-child(4n-3) {
+h1 span:nth-child(4n-3) {
     color: hsl(30, 65%, 60%);
     text-shadow: 1px 1px hsl(30, 45%, 50%), 2px 2px hsl(30, 45%, 50%), 3px 3px hsl(30, 45%, 50%), 4px 4px hsl(30, 45%, 50%);
 }
+
 
 h1 span:nth-child(2) {
     animation-delay: .05s;
@@ -257,7 +258,7 @@ h1 span:nth-child(14) {
     border: 1px solid #ccc; /* Light grey border */
     border-radius: 15px;
     padding: 8px; /* Adjust padding to fit content in a smaller area */
-    height: 250px; /* Adjusted height */
+    height: 320px; /* Adjusted height */
     display: flex;
     flex-direction: column;
     justify-content: space-between; /* Space content evenly */
@@ -324,3 +325,4 @@ h1 span:nth-child(14) {
     cursor: pointer;
     font-size: 24px;
 }
+

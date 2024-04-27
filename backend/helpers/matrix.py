@@ -365,11 +365,62 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes,rating_count_weight):
             name = data[indx]["Name"]
             id = data[indx]["RecipeId"]
             desc = data[indx]["Description"]
-            recipe = data[indx]["RecipeInstructions"]
+            recipe = format_recipe(data[indx]["RecipeInstructions"])
+            labels = food_warnings(recipe)
             rating = rating_count_weight[0][indx]
             count = rating_count_weight[1][indx]
-            info.append([name, cos_sim[indx], dish_sim[indx], id, desc, recipe, rating, count])
+            info.append([name, cos_sim[indx], dish_sim[indx], id, desc, recipe, rating, count, labels])
     return(info)
+
+
+def format_recipe(recipe):
+    result = "<br>"
+
+    recipe = recipe[1:-1]
+    s = recipe.split('\"')
+
+    for sent in s:
+        if len(sent) > 2:
+            i = sent.split(". ")
+            for inst in i:
+                if len(inst) > 3:
+                    if inst[-1] == '.':
+                        result += "- " + inst[:-1] + "<br>"
+                    else:
+                        result += "- " + inst + "<br>"
+
+    return result
+
+def food_warnings(recipe):
+    meat = re.search(" meat|beef|chicken|pork|lamb|turkey|duck|sausage|ham", recipe)
+    shellfish = re.search("shellfish|shrimp|prawn|crawfish|lobster|crab|mussel|oyster|scallop|clam", recipe)
+    fish = re.search("fish", recipe)
+    peanut = re.search("peanut", recipe)
+    treenut = re.search(" nut|almond|hazelnut|walnut|pecan|cashew|pistachio|macademia|pine nut", recipe)
+    milk = re.search("milk|cheese|yogurt|cream", recipe)
+    egg = re.search("egg", recipe)
+    wheat = re.search("wheat|rye|barley|bread|pasta", recipe)
+    soy = re.search("soy|tofu", recipe)
+    alcohol = re.search("alcohol|beer|wine", recipe)
+
+    allergy_labels = ["Shellfish", "Fish", "Peanut", "Treenut", "Milk", "Egg", "Wheat", "Soy", "Alcohol"]
+    allergies = [shellfish, fish, peanut, treenut, milk, egg, wheat, soy, alcohol]
+
+    result_labels = []
+
+    if fish or shellfish or meat:
+        result_labels.append("Meat")            
+    else:
+        if not (milk or egg):
+            result_labels.append("Vegan")
+        result_labels.append("Vegetarian")
+
+    for i in range(len(allergies)):
+        if allergies[i]:
+            result_labels.append(allergy_labels[i])
+
+    return result_labels
+
 
 #######################################################################################
 
