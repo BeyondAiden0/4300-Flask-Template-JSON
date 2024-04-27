@@ -34,15 +34,32 @@
         });
 
         function sendFocus() {
+        /**
+         * Focuses the cursor on the search input box.
+         * This function is triggered when the input box is clicked.
+         */
             document.getElementById('filter-text-val').focus();
         }
 
         function debounce(func, delay) {
+        /**
+         * Delays the execution of a function until after a specified delay in milliseconds,
+         * helping to limit the rate at which the function fires.
+         *
+         * Parameters:
+         *   func (Function): The function to delay.
+         *   delay (Number): The time to wait before executing the function, in milliseconds.
+         */
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(func, delay);
         }
 
         function filterText() {
+        /**
+         * Retrieves user input from the search box, sends it to the server to filter recipe names,
+         * and displays the filtered results in a dropdown.
+         * This function is triggered every time the user types a character in the search input box.
+         */
             let userInput = document.getElementById("filter-text-val").value;
             if (userInput.length > 0) {  // Ensure there is user input before making the call
                 fetch(`/filter_names?query=${encodeURIComponent(userInput)}`)
@@ -55,6 +72,13 @@
         }
 
         function showDropdown(userInput, names = []) {
+        /**
+         * Displays a dropdown list of recipe names that match the user input.
+         *
+         * Parameters:
+         *   userInput (String): The current text entered by the user in the search box.
+         *   names (Array of Strings): An array of recipe names to display in the dropdown; defaults to empty.
+         */
             const dropdown = document.getElementById("dropdown");
             dropdown.innerHTML = "";  // Clear previous options
             names.forEach(option => {
@@ -72,6 +96,12 @@
 
 
         function storeUserInput(userInput) {
+        /**
+         * Sends the selected recipe name from the dropdown to the server for storage.
+         *
+         * Parameters:
+         *   userInput (String): The recipe name selected by the user from the dropdown.
+         */
             fetch('/store_user_input', {
                 method: 'POST',
                 headers: {
@@ -87,6 +117,9 @@
         }
 
         function fetchTopSimilarDishes() {
+        /**
+         * Requests the server to retrieve dishes similar to the stored user input.
+         */
             fetch('/get_similar_dishes', {
                 method: 'POST'
             })
@@ -98,6 +131,12 @@
         }
 
         function displayTopSimilarDishes(dishes) {
+        /**
+         * Displays cards for each similar dish returned by the server.
+         *
+         * Parameters:
+         *   dishes (Array of Objects): An array containing objects with details of each similar dish.
+         */
             const answerBox = document.getElementById("answer-box");
             answerBox.innerHTML = ''; // Clear previous results
 
@@ -119,6 +158,12 @@
 
 
         function showRecipeDetail(dish) {
+        /**
+         * Displays detailed information for a specific dish in a popup window.
+         *
+         * Parameters:
+         *   dish (Object): An object containing detailed information about a dish.
+         */
             const detailPopup = document.getElementById('recipe-detail-popup');
             if (!detailPopup) {
                 console.error('Detail popup container not found.');
@@ -139,6 +184,12 @@
         }
 
         function togglePopup(show) {
+        /**
+         * Toggles the display of the recipe detail popup.
+         *
+         * Parameters:
+         *   show (Boolean): A boolean indicating whether to show or hide the popup.
+         */
             const popup = document.getElementById('recipe-detail-popup');
             if (popup) {
                 popup.style.display = show ? 'block' : 'none';
@@ -146,6 +197,13 @@
         }
 
         function truncate(str, num) {
+        /**
+         * Truncates a string to a specified length and adds ellipsis if the string exceeds that length.
+         *
+         * Parameters:
+         *   str (String): The string to truncate.
+         *   num (Number): The maximum number of characters to allow before truncating.
+         */
             if (str.length > num) {
                 return str.slice(0, num) + '...';
             } else {
@@ -156,6 +214,19 @@
 
 
         function answerBoxTemplate(name, description, recipeInstructions, aggregatedRating, similarity) {
+        /**
+         * Generates HTML content for displaying a recipe card with detailed information.
+         *
+         * Parameters:
+         *   name (String): The name of the recipe.
+         *   description (String): A short description of the recipe.
+         *   recipeInstructions (String): The cooking instructions for the recipe.
+         *   aggregatedRating (Number): The overall user rating of the recipe.
+         *   similarity (Number): The similarity score of the recipe compared to user input.
+         *
+         * Returns:
+         *   String: HTML content for a recipe card.
+         */
             return `<div class='recipe-container'>
                 <h3 class='recipe-name'>${name}</h3>
                 <p class='recipe-description'>${description}</p>
