@@ -4,33 +4,30 @@ import json
 from collections import defaultdict
 
 current_script_dir = os.path.dirname(os.path.abspath(__file__))
-    
-# Construct the paths to the data files
 recipe_path = os.path.normpath(os.path.join(current_script_dir, '..', 'data', 'random-recipe.json'))
 reviews_path = os.path.normpath(os.path.join(current_script_dir, '..', 'data', 'reviews.json'))
 dish_id_ingr_path = os.path.normpath(os.path.join(current_script_dir, '..', 'data', 'dish_id_ingr.txt'))
 
 
-#Step 1: link all recipeids from random-recipe to average reviews; returns a dict
+"""
+Links all 'RecipeId's from a JSON object to their corresponding averaged reviews, then
+weighs the reviews, and updates the dict values to that weighing value
+
+Parameter:
+    recipe_data (str): The path to the JSON file containing the recipes data.
+
+Returns:
+    final_dict: Dict of dict in RecipeId:{average rating, review count, weight} format
+"""
 
 def better_reviews(recipe_data):
-    """
-    Links all 'RecipeId's from a JSON object to their corresponding averaged reviews, then
-    weighs the reviews, and updates the dict values to that weighing value
-
-    Arguments
-    ========
-        recipe_data (str): The path to the JSON file containing the recipes data.
-
-    Returns:
-        final_dict: Dict of dict in RecipeId:{average rating, review count, weight} format
-    """
     final_dict = {}
-    # read recipe and review data from json and aggregate ratings
     with open(recipe_data, 'r', encoding='utf-8') as jsonfile:
         reviews = json.load(jsonfile)
+
         for review in reviews:
             recipe_id = int(review['RecipeId'])
+
             if review['ReviewCount'] is None:
                 rating = None
                 count = 0
@@ -60,29 +57,26 @@ def better_reviews(recipe_data):
 
 testweight = better_reviews(recipe_path)
 
+
+"""
+Links all 'RecipeId's from a JSON object to their corresponding averaged reviews and returns 
+them in a dict
+
+Parameters:
+    recipe_data (str): The path to the JSON file containing the recipes data.
+
+    review_data (str): The path to the JSON file containing the review data.
+
+Returns:
+    big_dict: Dict of dict in RecipeId:{average review score, number of reviews} format
+"""
+
 def construct_reviews(recipe_data, review_data):
-    """
-    Links all 'RecipeId's from a JSON object to their corresponding averaged reviews and returns them in a dict
-
-    Arguments
-    ========
-        recipe_data (str): The path to the JSON file containing the recipes data.
-        review_data (str): The path to the JSON file containing the review data.
-
-    Returns:
-        big_dict: Dict of dict in RecipeId:{average review score, number of reviews} format
-    """
-    # load recipe data from JSON
-    #recipes = json.loads(recipe_data)
-
-    # load recipe data from JSON path
     with open(recipe_data, 'r', encoding='utf-8') as f:
         recipes = json.load(f)
     
-    # init a default dict to hold sum and count of ratings for each RecipeId
     ratings_dict = defaultdict(lambda: {'sum': 0, 'count': 0})
     
-    # read review data from json and aggregate ratings
     with open(review_data, 'r', encoding='utf-8') as jsonfile:
         reviews = json.load(jsonfile)
         for review in reviews.values():
@@ -91,62 +85,63 @@ def construct_reviews(recipe_data, review_data):
             ratings_dict[recipe_id]['sum'] += rating
             ratings_dict[recipe_id]['count'] += 1
     
-    # calc average rating and create the big_dict
     big_dict = {}
     for recipe in recipes:
         recipe_id = recipe['RecipeId']
         if ratings_dict[recipe_id]['count'] > 0:
             average_rating = ratings_dict[recipe_id]['sum'] / ratings_dict[recipe_id]['count']
-            big_dict[recipe_id] = {'average_rating': average_rating, 'review_count': ratings_dict[recipe_id]['count']}
+            big_dict[recipe_id] = {'average_rating': average_rating, 'review_count': 
+                                   ratings_dict[recipe_id]['count']}
         else:
-            big_dict[recipe_id] = {'average_rating': None, 'review_count': 0}  # or any other default value, maybe 0?
+            big_dict[recipe_id] = {'average_rating': None, 'review_count': 0}  
     
     return big_dict
 
 ditct = construct_reviews(recipe_path,reviews_path)
-#print(ditct)
 
-#def checkEqual(L1, L2):
-#    return len(L1) == len(L2) and sorted(L1) == sorted(L2)
 
-#print(len(list(ditct.keys())))
-#print(len(matrix.name_ing_data[1]))
-#print(checkEqual(list(ditct.keys()), matrix.name_ing_data[1]))
-#print(ditct.keys())
-#print(matrix.name_ing_data[1])
+"""
+A weighting system for the reviews, updates the dict values to that weighing value
 
-#Step 2: figure out some weighting system for the reviews, update the dict values to that weighing
+Parameter:
+    linked_data: dict of recipes from construct_reviews() that have their respective average 
+    review rating as values
+
+Returns:
+    another_big_dict: Dict of dict in RecipeId:{average rating, review count, weight} format
+"""
 
 def weigh_reviews(linked_data):
-    """
-    A weighting system for the reviews, updates the dict values to that weighing value
-
-    Arguments
-    ========
-        linked_data: dict of recipes from construct_reviews() that have their respective average review rating as values
-
-    Returns:
-        another_big_dict: Dict of dict in RecipeId:{average rating, review count, weight} format
-    """
-    #some method of weighing reviews. maybe use 3 stars as 1.0? and closer we go to 5 stars the closer we get to 1.5.
-    #and closer we go to 1, we go closer to 0.5 weighting. What should we do about 0 stars? I think just a set value of 0.25.
     another_big_dict = {}
     for recipe_id, data in linked_data.items():
         average_rating = data['average_rating']
         if average_rating is None:
-            weight = 0.25  # set value for recipes with no reviews
+            weight = 0.25  
         elif average_rating < 3:
-            weight = 0.5 + (average_rating - 1) * 0.25  # linear interpolation between 0.5 and 0.75
+            weight = 0.5 + (average_rating - 1) * 0.25 
         else:
-            weight = 1.0 + (average_rating - 3) * 0.25  # linear interpolation between 1.0 and 1.5
-        another_big_dict[recipe_id] = {'average_rating': average_rating, 'review_count': data['review_count'], 'weight': weight}
+            weight = 1.0 + (average_rating - 3) * 0.25 
+        another_big_dict[recipe_id] = {'average_rating': average_rating, 'review_count': 
+                                       data['review_count'], 'weight': weight}
     
     return another_big_dict
 
-#weighgedede = weigh_reviews(ditct)
-#print(weighgedede)
 
-#Step 3: given a ranked list of recipes, apply our weighting of reviews onto it
+"""
+Returns a list of list containing three sublists (ratings, counts, and weights), which are
+ordered according to 'id_ordered'.
+
+Parameters:
+    id_rating_dict (dict): A dictionary where keys are dish ids and values are dictionaries
+    containing 'average_rating', 'review_count', and 'weight'.
+
+    id_ordered (list): A list of dish ids in the desired order.
+
+Returns:
+    rating_count_weight (list of lists): A list containing three sublists - ratings, counts, and weights -
+    ordered according to 'id_ordered'.
+
+"""
 
 def rerank(id_rating_dict, id_ordered):
     rating_count_weight = []
@@ -162,6 +157,7 @@ def rerank(id_rating_dict, id_ordered):
     rating_count_weight.append(weight)
     return(rating_count_weight)
 
+
 with open(dish_id_ingr_path, 'r') as file:
     content = file.read()
     input = ast.literal_eval(content)
@@ -169,18 +165,20 @@ name_ing_data = input
 rating_count_weight = rerank(testweight,name_ing_data[1])
 
 
+"""
+Applies our weighting of reviews onto ranked_orig, returning a weighted ranked list 
+
+Parameter
+    ranked_orig: list of list? of recipes to be weighed (should be from top_ten)
+
+    linked_data: dict of recipes from weigh_reviews() that have their respective average 
+    review rating as values
+
+Returns:
+    weighted: list of list? of weighed recipes
+"""
+
 def rerank_review(ranked_orig, linked_data):
-    """
-    Applies our weighting of reviews onto ranked_orig, returning a weighted ranked list 
-
-    Arguments
-    ========
-        ranked_orig: list of list? of recipes to be weighed (should be from top_ten)
-        linked_data: dict of recipes from weigh_reviews() that have their respective average review rating as values
-
-    Returns:
-        weighted: list of list? of weighed recipes
-    """
     weighted = []
     for recipe in ranked_orig:
         recipe_id = recipe[2] 
@@ -194,7 +192,6 @@ def rerank_review(ranked_orig, linked_data):
         else:
             weighted.append(recipe)
     
-    # sort the list by the weighted similarity in descending order
     weighted.sort(key=lambda x: x[1], reverse=True)
     
     return weighted

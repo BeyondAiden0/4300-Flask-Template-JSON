@@ -67,10 +67,12 @@ def get_flavor_profiles(json_file):
     flavor_profiles = set()
     with open(json_file, 'r') as f:
         data = json.load(f)
+
     for molecule in data['molecules']:
         if 'flavor_profile' in molecule:
             flavor_profiles.update(molecule['flavor_profile'].split('@'))
     flavor_profiles.discard('')
+
     return flavor_profiles
 
 
@@ -92,9 +94,11 @@ Example:
 def collect_flavor_profiles_from_directory(directory):
     all_flavor_profiles = set()
     for item in os.listdir(directory):
+
         if item.endswith('.json'):
             flavor_profiles = get_flavor_profiles(os.path.join(directory, item))
             all_flavor_profiles.update(flavor_profiles)
+
     all_flavor_profiles = sorted([fp for fp in all_flavor_profiles if fp])
     return all_flavor_profiles
 
@@ -126,6 +130,7 @@ def extract_keywords(json_file):
     keyword_counts = {}
     with open(json_file, 'r') as f:
         data = json.load(f)
+
         for molecule in data['molecules']:
             if 'flavor_profile' in molecule:
                 keywords = molecule['flavor_profile'].split('@')
@@ -135,6 +140,7 @@ def extract_keywords(json_file):
                             keyword_counts[keyword] += 1
                         else:
                             keyword_counts[keyword] = 1
+                            
     return dict(sorted(keyword_counts.items(), key=lambda item: item[1], reverse=True))
 
 
@@ -163,6 +169,7 @@ def merge_counts(json_files):
         full_path = os.path.join(data_dir, json_file)
         keyword_counts = extract_keywords(full_path)
         merged_keyword_counts.update(keyword_counts)
+
     merged_keyword_counts = dict(
         sorted(merged_keyword_counts.items(), key=lambda item: item[1], reverse=True))
     return merged_keyword_counts
@@ -192,8 +199,10 @@ Example:
 def compare_dict_with_flavor_profiles(dict_X, all_flavor_profiles):
     flavor_profile_counts = dict.fromkeys(all_flavor_profiles, 0)
     for key, value in dict_X.items():
+
         if key in flavor_profile_counts:
             flavor_profile_counts[key] += value
+
     return flavor_profile_counts
 
 
@@ -205,7 +214,11 @@ contained in the file.
 Parameters:
     recipes (str): A string representing the path to the JSON file containing multiple recipes.
 
-Returns:
+    base_dir (str): A string representing the path to the directory where the text file containing 
+    a tuple containing three lists: dish names, dish IDs, and ingredients, from a given recipes 
+    file is saved
+
+Saves:
     tuple: A tuple containing three lists:
         - The first list contains dish names (str), all converted to lowercase.
         - The second list contains dish IDs (int).
@@ -228,20 +241,22 @@ def dish_id_ingr(recipes, base_dir):
     dishes = []
     with open(recipes, 'r', encoding='utf-8') as f:
         data = json.load(f)
+
         for dish in data:
             dishes.append(dish["Name"].lower())
             id.append(dish["RecipeId"])
             ingr.append(
                 ((re.findall(r'"(.*?)"', dish["RecipeIngredientParts"].casefold()))))
+            
     info = (dishes, id, ingr)
     input_file_path = os.path.join(base_dir,"data", "dish_id_ingr.txt")
     with open(input_file_path, 'w') as file:
         file.write(json.dumps(info))
 
 """
-Constructs a matrix representing the flavor profiles of dishes and applies Singular Value 
+Returns a matrix representing the flavor profiles of dishes and applies Singular Value 
 Decomposition (SVD) to this matrix. It saves the matrix of dishes against latent flavor 
-dimensions (U)
+dimensions (U) with a k-value of 80
 
 Parameters:
     ndishes (int): The number of dishes, which determines the number of rows in the matrix.
@@ -254,25 +269,37 @@ Parameters:
 
     all_flavor_profiles (list of str): A list of all unique flavor names across the dataset.
 
+    base_dir (str): A string representing the path to the directory where the matrix of dishes against 
+    latent flavor dimensions (U) with a k-value of 80 is saved
+
+Returns:
+    matrix: a matrix (flavor matrix) representing the flavor profiles of dishes. Each row of the matrix 
+    corresponds to a dish while each column represents a flavor. At row i, column j in the matrix is the 
+    occurence/count of the flavor (j) within the dish (i). The occurence/count of the flavor is the number 
+    of occurence/count of the flavor within all the of the ingredients of the dish.
+
 Example:
     Given the number of dishes and flavors, along with the appropriate `name_ing_data`, `json_dict`, and 
     `all_flavor_profiles`, the function will construct the flavor profile matrix, apply SVD, and save the 
     resulting matrices to disk.
 """
 
-def flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles):
+def flavor_matrix(ndishes, nflavors, name_ing_data, json_dict, all_flavor_profiles, base_dir):
     matrix = np.zeros((ndishes, nflavors), dtype=float)
     row = 0
     for ingredient_list in name_ing_data[2]:
         acc = []
+
         for ingredient in ingredient_list:
             if ingredient.lower() in json_dict.keys():
                 acc.append(json_dict[ingredient.lower()])
+
         flavors = merge_counts(acc)
         for flavor in flavors.keys():
             ind = all_flavor_profiles.index(flavor)
             val = flavors[flavor]
             matrix[row][ind] = val
+
         row += 1
     dish_latentflavors, importance, latentflavor_flavors_trans = svds(matrix, k = 80)
     np.save((os.path.join(base_dir, "data", "dish-latent-flavors-matrix")), dish_latentflavors)
@@ -311,7 +338,7 @@ def load_user_input(filename):
 Identifies and returns the top ten dishes most similar to the user's input based on cosine similarity 
 and returns detailed information about these dishes, including their names, cosine similarity
 scores, ranking scores (cosine similarity score weighted by rating), IDs, descriptions, recipes, 
-ratings (1-5) and rating counts
+ratings (1-5), rating counts and labels
 
 Parameters:
     query_sim (str): The name of the dish similar to that which was inputted by the user.
@@ -323,8 +350,9 @@ Parameters:
     recipes (str): The path to the JSON file containing the recipes data.
 
 Returns:
-    list: A list of lists, where each inner list contains the name, cosine similarity score, ID, 
-    description, and recipe instructions of a similar dish.
+    list: A list of lists, where each inner list contains the names, cosine similarity scores, 
+    ranking scores (cosine similarity score weighted by rating), IDs, descriptions, recipes, 
+    ratings (1-5), rating counts and labels
 
 Example:
     Given a user's input dish name, the corresponding lists of dish names and IDs, a 
@@ -346,21 +374,27 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes,rating_count_weight):
         else:
             dish_sim.append(0)
             cos_sim.append(0)
+
     dish_cossim = np.array(dish_sim)
     top = np.argsort(dish_cossim)[-11:]
     ordered = top[::-1]
     final = np.delete(ordered, np.where(ordered == index))
+
     if np.size(final) != 10:
         final = final[:10]  
+
     info = []
     cos_scores = np.array(cos_sim)
     top1 = np.argsort(cos_scores)[-11:]
     ordered1 = top1[::-1]
     final1 = np.delete(ordered1, np.where(ordered1 == index))
+
     if np.size(final1) != 10:
         final1 = final1[:10]
+
     with open(recipes, 'r', encoding='utf-8') as f:
         data = json.load(f)
+
         for indx in final:
             name = data[indx]["Name"]
             id = data[indx]["RecipeId"]
@@ -370,11 +404,34 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes,rating_count_weight):
             rating = rating_count_weight[0][indx]
             count = rating_count_weight[1][indx]
             info.append([name, cos_sim[indx], dish_sim[indx], id, desc, recipe, rating, count, labels])
+
     return(info)
+
+
+"""
+Returns the vector (flavor vector) representing the flavor profile for each of the top ten dishes
+(top ten most similar dishes to the user's input based on the dishes' flavor profiles)
+
+Parameters:
+    top_ten (list of lists): A list of lists of the top ten dishes. Each inner list 
+    contains the names, cosine similarity scores, ranking scores (cosine similarity score weighted 
+    by rating), IDs, descriptions, recipes, ratings (1-5), rating counts and labels
+
+    dish_order (list): A list of dish names in the order they appear in the matrix_comp.
+
+    matrix_comp (numpy.ndarray): The matrix containing the flavor vectors that represents each dish.
+
+Returns:
+    tuple: A tuple containing two lists:
+        original (list of numpy.ndarray): The original flavor vectors for the top ten dishes.
+
+        vectors (list of numpy.ndarray): The indices of the flavors sorted by their count in descending order.
+"""
 
 def top_ten_vector(top_ten, dish_order, matrix_comp):
     original = []
     vectors = []
+
     for dishes in top_ten:
         name = dishes[0]
         dish_indx = dish_order.index(name.lower())
@@ -382,20 +439,40 @@ def top_ten_vector(top_ten, dish_order, matrix_comp):
         original.append(vect)
         top = np.argsort(vect)[::-1]
         vectors.append(top)
+
     return([original, vectors])
 
+
+"""
+Returns the top five latent dimensions between the user's inputted dish (user's selection of a dish from 
+the drop down) and each of the top ten dishes (top ten most similar dishes to the user's input based on 
+the dishes' flavor profiles)
+    
+Parameters:
+    query_sim (str): The name of the user's selected dish.
+
+    top_ten_vects (tuple of lists): A tuple containing two lists, one with the original vectors and one 
+    with the indices of the top ten similar dishes, sorted by their count in descending order.
+
+    dish_order (list): A list of dishes in the order they appear in the matrix.
+
+    matrix_comp (np.array): The matrix containing the flavor vectors that represents each dish.
+    
+Returns:
+    final (list of lists): A list of lists, where each sublist contains the top five latent dimensions 
+    for one of the top ten dishes
+"""
+
 def top_latent(query_sim, top_ten_vects, dish_order, matrix_comp):
-    print("start")
     indx = dish_order.index(query_sim.lower())
     in_vect = matrix_comp[indx,:]
     in_vect = np.argsort(in_vect)[::-1]
-    print(in_vect)
-
     final = []
+
     for ori, vects in zip(top_ten_vects[0], top_ten_vects[1]):
-        print(vects)
         top_lat = []
         size = 10
+
         while len(top_lat) < 5:
             mini_vects = vects[:size]
             mini_in = set(in_vect[:size])
@@ -404,19 +481,40 @@ def top_latent(query_sim, top_ten_vects, dish_order, matrix_comp):
                 for lat_indx in inter:
                     top_lat.append(lat_indx)
             size = size + 5
+
         top_lat = list(set(top_lat))
         order = []
+
         for val in top_lat:
             order.append([val,ori[val]])
+
         ordered = sorted(order, key=lambda x: x[1])
         temp = []
+
         for element in ordered:
             temp.append(element[0])
         temp = temp[::-1]
+
         if len(temp) != 5:
             top_lat = temp[:5]
         final.append(top_lat)
+
     return(final)
+
+
+"""
+Returns a dictionary mapping each latent dimension in the SVD matrix to the corresponding 
+original flavor dimensions.
+    
+Parameters:
+    all_flavor_profiles (list): A list of all flavor profile names.
+
+    base_dir (str): The base directory where the data files are located.
+    
+Returns:
+    lat_dims_dict (dict): A dictionary where keys are latent dimension indices and values 
+    are lists of top flavor profile names.
+"""
 
 def find_latent_dims(all_flavor_profiles, base_dir):
     flavor_dict = {}
@@ -430,10 +528,12 @@ def find_latent_dims(all_flavor_profiles, base_dir):
     index_to_word = {i:t for t,i in word_to_index.items()}
     words_compressed = v
     lat_dims_dict = {}
+
     for i in range(80):
         dimension_col = words_compressed[:,i].squeeze()
         asort = np.argsort(-dimension_col)
         lat_dims_dict.update({i:[index_to_word[i] for i in asort[:10]]})
+
     return(lat_dims_dict)
 
 
@@ -517,29 +617,12 @@ json_dict = create_dict_from_directory(data_dir)
 dish_latentflavors_path = os.path.join(base_dir, "data", "dish-latent-flavors-matrix.npy")
 dish_latentflavors = np.load(dish_latentflavors_path)
 
-
-#Test Purposes:
-
+"""
 final_output1 = top_ten("Cottage Cheese Banana Sundae", name_ing_data, dish_latentflavors, recipes_file, rating_count_weight)
 top_vects = top_ten_vector(final_output1, name_ing_data[0], dish_latentflavors)
-for vect in top_vects:
-    print(vect)
-
 lats = top_latent("Cottage Cheese Banana Sundae", top_vects, name_ing_data[0], dish_latentflavors)
-
 """
-print("dict1")
-lat_dict = find_latent_dims(all_flavor_profiles, base_dir)
-print(lat_dict)
-print("dict2")
 
-
-
-print("lat1")
-lats = top_latent("Cottage Cheese Banana Sundae", top_vects, name_ing_data[0], dish_latentflavors)
-print(lat)
-print("lat2")
-"""
 
 
     
