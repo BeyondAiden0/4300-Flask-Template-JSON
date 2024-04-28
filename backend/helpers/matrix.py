@@ -6,7 +6,7 @@ import numpy as np
 import ast
 from scipy.sparse.linalg import svds
 from numpy import linalg as LA
-from reviews import rating_count_weight
+from .reviews import rating_count_weight
 
 
 """
@@ -404,6 +404,16 @@ def top_ten(query_sim, name_ing_data, matrix_comp, recipes,rating_count_weight):
             rating = rating_count_weight[0][indx]
             count = rating_count_weight[1][indx]
             info.append([name, cos_sim[indx], dish_sim[indx], id, desc, recipe, rating, count, labels])
+
+    # Computing the latent dimensions and transforming them
+    top_vects = top_ten_vector(info, name_ing_data[0], matrix_comp)
+    lats = top_latent(query_sim, top_vects, name_ing_data[0], matrix_comp)
+    lat_dims = find_latent_dims(all_flavor_profiles, base_dir)
+    transformed_lats = [[lat_dims[index] for index in sublist] for sublist in lats]
+
+    # Adding transformed_lats to the output
+    for i, dish_info in enumerate(info):
+        dish_info.append(transformed_lats[i])
 
     return(info)
 

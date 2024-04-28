@@ -317,7 +317,8 @@ h1 span:nth-child(14) {
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 70%;
+    width: 80%;
+    /* max-width: 960px;  */
     height: 70%;
     transform: translate(-50%, -50%);
     background-color: rgb(250, 250, 240);
@@ -331,6 +332,7 @@ h1 span:nth-child(14) {
     justify-content: start;
     overflow-y: auto; /* Enable scroll if content is too long */
     text-align: left; /* Ensure all text aligns to the left */
+    /* box-sizing: border-box; */
 }
 
 /* Centering labels container in the popup */
@@ -350,6 +352,7 @@ h1 span:nth-child(14) {
 
 /* Styling individual paragraphs in the popup for better spacing */
 .recipe-detail-popup p {
+    /* text-align: left;  */
     margin-bottom: 15px; /* Add more space between each data field */
     margin-left: 40px
 }
@@ -431,6 +434,37 @@ h1 span:nth-child(14) {
     display: block;     /* Make the span a block element */
     position: relative; /* Positioned relative to its parent */
     text-align: center; /* Ensure the stars are aligned in the center if span is block */
+}
+
+/* Style for the unordered list of flavor dimensions in the recipe detail popup */
+.flavor-dimensions {
+    list-style-type: none; /* Removes default bullet points */
+    margin-top: 10px; /* Space above the list */
+    max-height: 200px; /* Restricts the maximum height of the list */
+    overflow-y: visible; 
+}
+
+.flavor-dimensions li {
+    background-color: #fefefe; /* Light grey background for each item */
+    border-radius: 8px; /* Rounded corners for each item */
+    padding: 8px 16px; /* Padding inside each list item */
+    margin-bottom: 6px; /* Margin between list items */
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+    font-family: 'Open Sans', sans-serif; /* Consistent font usage */
+    font-size: 0.9em; /* Slightly smaller font size */
+}
+
+.hint-message p {
+    color: #5a3e36; /* A warm, dark taupe that looks sophisticated and readable */
+    font-size: 1.2em; /* Slightly larger font size for better readability */
+    text-align: center; /* Center the text */
+    padding: 20px; /* Add padding around the text for better spacing */
+    margin: 20px auto; /* Center it horizontally and give some space above and below */
+    border-radius: 10px; /* Rounded corners for a softer look */
+    background-color: #fffaf0; /* A soft ivory color that contrasts gently with beige */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* A subtle shadow for depth */
+    width: 100%; /* Limiting width to keep it readable */
+    box-sizing: border-box; /* Includes padding and border in the width and height */
 }
 
 

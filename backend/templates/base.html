@@ -18,6 +18,9 @@
                 <div id="dropdown" class="dropdown-content"></div>
             </div>          
         </div>
+        <div class="hint-message">
+            <p>🌟 Discover the fantstic flavor-matching recipes based on your favorite dish! <br> Click on a recipe card to explore the magic of matching flavors and dive into a world of culinary delight! 🌿🍴</p>
+        </div>
         <div id="answer-box"></div>
         <div id="recipe-detail-popup" class="recipe-detail-popup"></div>
 
@@ -186,6 +189,8 @@
             // Calculate width for star rating based on the dish rating
             let ratingPercentage = (dish[6] / 5) * 100; 
 
+            let flavorDimensionsHtml = dish[9].map(dimList => `<li>${dimList.join(', ')}</li>`).join('');
+
             detailPopup.innerHTML = `
                 <span class="close-btn" onclick="togglePopup(false)">&times;</span>
                 <h2>${dish[0]}</h2>
@@ -196,10 +201,9 @@
                 <p><strong>Description:</strong> ${dish[4]}</p>
                 <p><strong>Instructions:</strong> ${dish[5]}</p>
                 <p><strong>SVD Similarity:</strong> ${dish[1].toFixed(5)}</p>
-
                 <p><strong>Rating Count:</strong> ${dish[7]}</p>
                 <p><strong>Weighted Ranking:</strong> ${dish[2].toFixed(5)}</p>
-                <p><strong>Flavor Dimensions: </strong> </p>
+                <p><strong>Matching Flavor Dimensions: </strong> <ul class="flavor-dimensions">${flavorDimensionsHtml}</ul></p>
             `;
             togglePopup(true);
         }
