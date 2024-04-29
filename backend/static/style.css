@@ -1,6 +1,6 @@
 @import url(https://fonts.googleapis.com/css?family=Signika:700,300,600);
 
-.full-body-container {
+/* .full-body-container {
     position: absolute;
     top: 0;
     left: 0;
@@ -12,12 +12,21 @@
     justify-content: start;
     align-items: center;
     flex-direction: column;
-}
+    overflow: auto;
+} */
 
 /* ------------------------ Happy Shaking Text -----------------------------*/
-html, body {
+/* html, body {
     height: 100%;
     min-height: 100%;
+} */
+html, body {
+    height: 100%; /* Full height to the body */
+    min-height: 100%;
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    overflow: auto; /* Allow the whole page to scroll */
+    background: beige; /* Maintain your background styling */
 }
 
 body {
@@ -152,14 +161,15 @@ h1 span:nth-child(14) {
 }
 
 .input-box {
-    position: relative;
+    /* put the input box in the center */
+    position:relative;
     border-radius: 50px;
     border: 1px solid black;
-    display: flex;
+    display:flex;
     align-items: center;
     margin-top: 10px;
     padding: 12px;
-    width: 700px;
+    width: auto;
     background: rgba(255, 255, 255, 0.5); /* Slight transparency on the entire box */
 }
 
@@ -184,17 +194,18 @@ h1 span:nth-child(14) {
 }
 
 #answer-box {
-    width: 100%; /* Adjusted to full width of its container */
+    width: auto; /* Adjusted to full width of its container */
     display: grid;
     grid-template-columns: repeat(2, 1fr); /* 2 cards per row */
     grid-gap: 20px; /* Space between cards */
     padding: 10px; /* Padding around the grid */
-    margin-top: 40px; /* Margin top for spacing */
-    max-width: 1600px; /* Limit the maximum width */
+    margin-top: 40px auto; /* Margin top for spacing */
+    max-width: 1200px auto; /* Limit the maximum width */
     margin-left: auto; /* Centering the grid */
     margin-right: auto; /* Centering the grid */
-    margin-bottom: 40px; /* Added bottom margin for space below the box */
-    overflow: auto; /* Enable scrolling */
+    margin-bottom: 40px auto; /* Added bottom margin for space below the box */
+    overflow:visible;
+    margin-bottom: 100px;
 }
 
 #dropdown {
@@ -231,24 +242,41 @@ h1 span:nth-child(14) {
 
 
 /* Basic grid layout for recipe cards */
-.full-body-container {
-    position: relative; /* Changed from absolute to relative */
+/* .full-body-container {
+    position: relative; 
     width: 100%;
-    max-width: 1600px; /* Limit the maximum width to 1200px or another suitable value */
-    height: auto; /* Height automatically adjusts to content */
-    margin: 0 auto; /* Center align the container */
-    padding: 20px; /* Add some padding around the edges */
+    max-width: 1600px; 
+    height: auto; 
+    margin: 0 auto; 
+    padding: 20px; 
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Optional: adds shadow for better framing */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+    overflow: auto; 
+} */
+
+.full-body-container {
+    position: relative; /* Changed from absolute to relative if necessary */
+    width: 100%; /* Ensure it spans the full width */
+    max-width: 1800px;
+    display:flex;
+    margin: 0 auto; /* Center the container */
+    justify-content: center;
+    align-items: flex-start; /* Start aligning items from top */
+    flex-direction: column;
+    padding: 20px 0; /* Padding top and bottom for better spacing, no side paddings to affect width */
+    box-sizing: border-box; /* Padding included in width calculation */
+    /* box-shadow: 0 0 10px rgba(0,0,0,0.1); */
+    overflow: visible; /* Allow overflow if necessary */
+    padding-bottom: 50px;
 }
 
 .recipe-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 20px;
     margin-bottom: 20px;
 }
 
@@ -266,6 +294,7 @@ h1 span:nth-child(14) {
     cursor: pointer; 
     align-items: flex-start; /* Align text to the left */
 }
+
 
 /* .recipe-card h3 {
     white-space: nowrap;
@@ -463,7 +492,7 @@ h1 span:nth-child(14) {
     border-radius: 10px; /* Rounded corners for a softer look */
     background-color: #fffaf0; /* A soft ivory color that contrasts gently with beige */
     box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* A subtle shadow for depth */
-    width: 100%; /* Limiting width to keep it readable */
+    width: 100% auto; /* Limiting width to keep it readable */
     box-sizing: border-box; /* Includes padding and border in the width and height */
 }
 
